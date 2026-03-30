@@ -1,0 +1,312 @@
+test_00_segment_length (__main__.T.test_00_segment_length) ... 2026-02-19 20:16:07,348:unittests.py:INFO:waiting for a process to finish for 5.000 seconds
+2026-02-19 20:16:07,351:btcp.client_socket:DEBUG:__init__ called
+2026-02-19 20:16:07,351:btcp.btcp_socket:DEBUG:__init__ called
+2026-02-19 20:16:07,351:btcp.btcp_socket:DEBUG:Socket initialized with window 10 and timeout 2 secs and isn 10783
+2026-02-19 20:16:07,351:btcp.lossy_layer:INFO:LossyLayer.__init__() was called
+2026-02-19 20:16:07,351:btcp.lossy_layer:INFO:Starting network thread
+2026-02-19 20:16:07,351:btcp.lossy_layer:INFO:Starting handle_incoming_segments
+2026-02-19 20:16:07,352:btcp.lossy_layer:INFO:Lossy layer initialized, listening on local address localhost & port 20000, remote address localhost & port 30000
+2026-02-19 20:16:07,352:btcp.client_socket:INFO:Socket initialized with sendbuf size 1000
+2026-02-19 20:16:07,352:btcp.client_socket:DEBUG:connect called
+2026-02-19 20:16:07,352:btcp.client_socket:DEBUG:send called
+2026-02-19 20:16:07,352:btcp.client_socket:DEBUG:12 bytes passed to send
+2026-02-19 20:16:07,352:btcp.client_socket:INFO:Queueing data for transmission
+2026-02-19 20:16:07,352:btcp.client_socket:DEBUG:Cumulative data queued: 0 bytes
+2026-02-19 20:16:07,352:btcp.client_socket:DEBUG:Putting chunk in send queue.
+2026-02-19 20:16:07,352:btcp.client_socket:INFO:Managed to queue 12 out of 12 bytes for transmission
+2026-02-19 20:16:07,352:btcp.server_socket:DEBUG:__init__() called.
+2026-02-19 20:16:07,352:btcp.client_socket:DEBUG:shutdown called
+2026-02-19 20:16:07,352:btcp.btcp_socket:DEBUG:__init__ called
+2026-02-19 20:16:07,352:btcp.btcp_socket:DEBUG:Socket initialized with window 10 and timeout 2 secs and isn 3607
+2026-02-19 20:16:07,352:btcp.lossy_layer:INFO:LossyLayer.__init__() was called
+2026-02-19 20:16:07,353:btcp.server_socket:INFO:Socket initialized with recvbuf size 1000
+2026-02-19 20:16:07,353:btcp.lossy_layer:INFO:Starting network thread
+2026-02-19 20:16:07,353:btcp.lossy_layer:INFO:Starting handle_incoming_segments
+2026-02-19 20:16:07,353:btcp.lossy_layer:INFO:Lossy layer initialized, listening on local address localhost & port 30000, remote address localhost & port 20000
+2026-02-19 20:16:07,353:btcp.server_socket:DEBUG:accept called
+2026-02-19 20:16:07,353:btcp.server_socket:DEBUG:recv called
+2026-02-19 20:16:07,353:btcp.server_socket:INFO:Retrieving data from receive queue
+2026-02-19 20:16:07,353:btcp.server_socket:INFO:Blocking get for first chunk of data.
+2026-02-19 20:16:07,452:btcp.client_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:07,452:btcp.client_socket:DEBUG:Getting chunk from buffer.
+2026-02-19 20:16:07,452:btcp.client_socket:DEBUG:Got chunk with length 12:
+2026-02-19 20:16:07,452:btcp.client_socket:DEBUG:b'Hello world!'
+2026-02-19 20:16:07,452:btcp.client_socket:DEBUG:Padding chunk to full size
+2026-02-19 20:16:07,452:btcp.client_socket:DEBUG:Building segment from chunk.
+2026-02-19 20:16:07,452:btcp.btcp_socket:DEBUG:build_segment_header() called
+2026-02-19 20:16:07,452:btcp.btcp_socket:DEBUG:build_segment_header() done
+2026-02-19 20:16:07,453:btcp.client_socket:INFO:Sending segment.
+2026-02-19 20:16:07,453:btcp.lossy_layer:DEBUG:Attempting to send segment:
+2026-02-19 20:16:07,453:btcp.client_socket:DEBUG:Getting chunk from buffer.
+2026-02-19 20:16:07,453:btcp.client_socket:INFO:No (more) data was available for sending right now.
+2026-02-19 20:16:07,453:btcp.server_socket:DEBUG:lossy_layer_segment_received called
+2026-02-19 20:16:07,453:btcp.server_socket:DEBUG:b'*\x1f\x00\x00\x00\x01\x00\x0c\x00\x00Hello world!\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+2026-02-19 20:16:07,453:btcp.server_socket:DEBUG:_closed_segment_received called
+2026-02-19 20:16:07,453:btcp.server_socket:WARNING:Segment received in CLOSED state.
+2026-02-19 20:16:07,454:btcp.server_socket:WARNING:Normally we wouldn't process this, but the rudimentary implementation never leaves the CLOSED state.
+2026-02-19 20:16:07,454:btcp.server_socket:DEBUG:Example timer not running.
+2026-02-19 20:16:07,454:btcp.server_socket:DEBUG:First chunk of data retrieved.
+2026-02-19 20:16:07,454:btcp.server_socket:DEBUG:Looping over rest of queue.
+2026-02-19 20:16:07,454:btcp.server_socket:DEBUG:Queue emptied or timeout reached
+2026-02-19 20:16:07,454:btcp.server_socket:INFO:bytearray(b'Hello world!')
+2026-02-19 20:16:07,454:btcp.server_socket:DEBUG:recv called
+2026-02-19 20:16:07,454:btcp.server_socket:INFO:Retrieving data from receive queue
+2026-02-19 20:16:07,454:btcp.server_socket:INFO:Blocking get for first chunk of data.
+2026-02-19 20:16:07,553:btcp.client_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:07,554:btcp.client_socket:DEBUG:Getting chunk from buffer.
+2026-02-19 20:16:07,554:btcp.client_socket:INFO:No (more) data was available for sending right now.
+2026-02-19 20:16:07,554:btcp.server_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:07,554:btcp.server_socket:DEBUG:Starting example timer.
+2026-02-19 20:16:07,554:btcp.server_socket:DEBUG:Example timer not yet elapsed.
+2026-02-19 20:16:07,654:btcp.client_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:07,654:btcp.client_socket:DEBUG:Getting chunk from buffer.
+2026-02-19 20:16:07,654:btcp.client_socket:INFO:No (more) data was available for sending right now.
+2026-02-19 20:16:07,654:btcp.server_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:07,655:btcp.server_socket:DEBUG:Example timer already running.
+2026-02-19 20:16:07,655:btcp.server_socket:DEBUG:Example timer not yet elapsed.
+2026-02-19 20:16:07,755:btcp.client_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:07,755:btcp.client_socket:DEBUG:Getting chunk from buffer.
+2026-02-19 20:16:07,755:btcp.client_socket:INFO:No (more) data was available for sending right now.
+2026-02-19 20:16:07,755:btcp.server_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:07,755:btcp.server_socket:DEBUG:Example timer already running.
+2026-02-19 20:16:07,755:btcp.server_socket:DEBUG:Example timer not yet elapsed.
+2026-02-19 20:16:07,855:btcp.client_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:07,855:btcp.client_socket:DEBUG:Getting chunk from buffer.
+2026-02-19 20:16:07,855:btcp.client_socket:INFO:No (more) data was available for sending right now.
+2026-02-19 20:16:07,855:btcp.server_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:07,856:btcp.server_socket:DEBUG:Example timer already running.
+2026-02-19 20:16:07,856:btcp.server_socket:DEBUG:Example timer not yet elapsed.
+2026-02-19 20:16:07,956:btcp.client_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:07,956:btcp.server_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:07,956:btcp.client_socket:DEBUG:Getting chunk from buffer.
+2026-02-19 20:16:07,956:btcp.server_socket:DEBUG:Example timer already running.
+2026-02-19 20:16:07,956:btcp.server_socket:DEBUG:Example timer not yet elapsed.
+2026-02-19 20:16:07,956:btcp.client_socket:INFO:No (more) data was available for sending right now.
+2026-02-19 20:16:08,056:btcp.server_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:08,056:btcp.client_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:08,056:btcp.server_socket:DEBUG:Example timer already running.
+2026-02-19 20:16:08,056:btcp.client_socket:DEBUG:Getting chunk from buffer.
+2026-02-19 20:16:08,056:btcp.server_socket:DEBUG:Example timer not yet elapsed.
+2026-02-19 20:16:08,057:btcp.client_socket:INFO:No (more) data was available for sending right now.
+2026-02-19 20:16:08,157:btcp.server_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:08,157:btcp.client_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:08,157:btcp.server_socket:DEBUG:Example timer already running.
+2026-02-19 20:16:08,157:btcp.client_socket:DEBUG:Getting chunk from buffer.
+2026-02-19 20:16:08,157:btcp.server_socket:DEBUG:Example timer not yet elapsed.
+2026-02-19 20:16:08,157:btcp.client_socket:INFO:No (more) data was available for sending right now.
+2026-02-19 20:16:08,257:btcp.server_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:08,257:btcp.client_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:08,257:btcp.server_socket:DEBUG:Example timer already running.
+2026-02-19 20:16:08,257:btcp.server_socket:DEBUG:Example timer not yet elapsed.
+2026-02-19 20:16:08,257:btcp.client_socket:DEBUG:Getting chunk from buffer.
+2026-02-19 20:16:08,257:btcp.client_socket:INFO:No (more) data was available for sending right now.
+2026-02-19 20:16:08,358:btcp.server_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:08,358:btcp.server_socket:DEBUG:Example timer already running.
+2026-02-19 20:16:08,358:btcp.server_socket:DEBUG:Example timer not yet elapsed.
+2026-02-19 20:16:08,358:btcp.client_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:08,358:btcp.client_socket:DEBUG:Getting chunk from buffer.
+2026-02-19 20:16:08,358:btcp.client_socket:INFO:No (more) data was available for sending right now.
+2026-02-19 20:16:08,458:btcp.server_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:08,458:btcp.server_socket:DEBUG:Example timer already running.
+2026-02-19 20:16:08,458:btcp.server_socket:DEBUG:Example timer not yet elapsed.
+2026-02-19 20:16:08,458:btcp.client_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:08,458:btcp.client_socket:DEBUG:Getting chunk from buffer.
+2026-02-19 20:16:08,458:btcp.client_socket:INFO:No (more) data was available for sending right now.
+2026-02-19 20:16:08,558:btcp.server_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:08,558:btcp.server_socket:DEBUG:Example timer already running.
+2026-02-19 20:16:08,558:btcp.server_socket:DEBUG:Example timer not yet elapsed.
+2026-02-19 20:16:08,559:btcp.client_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:08,559:btcp.client_socket:DEBUG:Getting chunk from buffer.
+2026-02-19 20:16:08,559:btcp.client_socket:INFO:No (more) data was available for sending right now.
+2026-02-19 20:16:08,659:btcp.server_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:08,659:btcp.server_socket:DEBUG:Example timer already running.
+2026-02-19 20:16:08,659:btcp.server_socket:DEBUG:Example timer not yet elapsed.
+2026-02-19 20:16:08,659:btcp.client_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:08,659:btcp.client_socket:DEBUG:Getting chunk from buffer.
+2026-02-19 20:16:08,659:btcp.client_socket:INFO:No (more) data was available for sending right now.
+2026-02-19 20:16:08,759:btcp.server_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:08,759:btcp.server_socket:DEBUG:Example timer already running.
+2026-02-19 20:16:08,759:btcp.server_socket:DEBUG:Example timer not yet elapsed.
+2026-02-19 20:16:08,759:btcp.client_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:08,759:btcp.client_socket:DEBUG:Getting chunk from buffer.
+2026-02-19 20:16:08,759:btcp.client_socket:INFO:No (more) data was available for sending right now.
+2026-02-19 20:16:08,859:btcp.server_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:08,860:btcp.server_socket:DEBUG:Example timer already running.
+2026-02-19 20:16:08,860:btcp.server_socket:DEBUG:Example timer not yet elapsed.
+2026-02-19 20:16:08,860:btcp.client_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:08,860:btcp.client_socket:DEBUG:Getting chunk from buffer.
+2026-02-19 20:16:08,860:btcp.client_socket:INFO:No (more) data was available for sending right now.
+2026-02-19 20:16:08,960:btcp.server_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:08,960:btcp.server_socket:DEBUG:Example timer already running.
+2026-02-19 20:16:08,960:btcp.server_socket:DEBUG:Example timer not yet elapsed.
+2026-02-19 20:16:08,960:btcp.client_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:08,960:btcp.client_socket:DEBUG:Getting chunk from buffer.
+2026-02-19 20:16:08,960:btcp.client_socket:INFO:No (more) data was available for sending right now.
+2026-02-19 20:16:09,060:btcp.server_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:09,060:btcp.server_socket:DEBUG:Example timer already running.
+2026-02-19 20:16:09,060:btcp.server_socket:DEBUG:Example timer not yet elapsed.
+2026-02-19 20:16:09,060:btcp.client_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:09,060:btcp.client_socket:DEBUG:Getting chunk from buffer.
+2026-02-19 20:16:09,060:btcp.client_socket:INFO:No (more) data was available for sending right now.
+2026-02-19 20:16:09,160:btcp.server_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:09,161:btcp.server_socket:DEBUG:Example timer already running.
+2026-02-19 20:16:09,161:btcp.server_socket:DEBUG:Example timer not yet elapsed.
+2026-02-19 20:16:09,161:btcp.client_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:09,161:btcp.client_socket:DEBUG:Getting chunk from buffer.
+2026-02-19 20:16:09,161:btcp.client_socket:INFO:No (more) data was available for sending right now.
+2026-02-19 20:16:09,261:btcp.server_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:09,261:btcp.server_socket:DEBUG:Example timer already running.
+2026-02-19 20:16:09,261:btcp.server_socket:DEBUG:Example timer not yet elapsed.
+2026-02-19 20:16:09,261:btcp.client_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:09,261:btcp.client_socket:DEBUG:Getting chunk from buffer.
+2026-02-19 20:16:09,262:btcp.client_socket:INFO:No (more) data was available for sending right now.
+2026-02-19 20:16:09,361:btcp.server_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:09,361:btcp.server_socket:DEBUG:Example timer already running.
+2026-02-19 20:16:09,362:btcp.server_socket:DEBUG:Example timer not yet elapsed.
+2026-02-19 20:16:09,362:btcp.client_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:09,362:btcp.client_socket:DEBUG:Getting chunk from buffer.
+2026-02-19 20:16:09,362:btcp.client_socket:INFO:No (more) data was available for sending right now.
+2026-02-19 20:16:09,455:btcp.server_socket:DEBUG:Queue emptied or timeout reached
+2026-02-19 20:16:09,455:btcp.server_socket:INFO:bytearray(b'')
+2026-02-19 20:16:09,455:btcp.server_socket:INFO:No data received for 2 seconds.
+2026-02-19 20:16:09,455:btcp.server_socket:INFO:Returning empty bytes to caller, signalling disconnect.
+2026-02-19 20:16:09,462:btcp.server_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:09,462:btcp.server_socket:DEBUG:Example timer already running.
+2026-02-19 20:16:09,462:btcp.server_socket:DEBUG:Example timer not yet elapsed.
+2026-02-19 20:16:09,463:btcp.client_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:09,463:btcp.client_socket:DEBUG:Getting chunk from buffer.
+2026-02-19 20:16:09,463:btcp.client_socket:INFO:No (more) data was available for sending right now.
+2026-02-19 20:16:09,562:btcp.server_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:09,563:btcp.server_socket:DEBUG:Example timer already running.
+2026-02-19 20:16:09,563:btcp.server_socket:DEBUG:Example timer elapsed.
+2026-02-19 20:16:09,564:btcp.client_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:09,564:btcp.client_socket:DEBUG:Getting chunk from buffer.
+2026-02-19 20:16:09,564:btcp.client_socket:INFO:No (more) data was available for sending right now.
+2026-02-19 20:16:09,663:btcp.server_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:09,663:btcp.server_socket:DEBUG:Starting example timer.
+2026-02-19 20:16:09,663:btcp.server_socket:DEBUG:Example timer not yet elapsed.
+2026-02-19 20:16:09,665:btcp.client_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:09,665:btcp.client_socket:DEBUG:Getting chunk from buffer.
+2026-02-19 20:16:09,665:btcp.client_socket:INFO:No (more) data was available for sending right now.
+2026-02-19 20:16:09,763:btcp.server_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:09,764:btcp.server_socket:DEBUG:Example timer already running.
+2026-02-19 20:16:09,764:btcp.server_socket:DEBUG:Example timer not yet elapsed.
+2026-02-19 20:16:09,766:btcp.client_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:09,766:btcp.client_socket:DEBUG:Getting chunk from buffer.
+2026-02-19 20:16:09,766:btcp.client_socket:INFO:No (more) data was available for sending right now.
+2026-02-19 20:16:09,864:btcp.server_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:09,865:btcp.server_socket:DEBUG:Example timer already running.
+2026-02-19 20:16:09,865:btcp.server_socket:DEBUG:Example timer not yet elapsed.
+2026-02-19 20:16:09,867:btcp.client_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:09,867:btcp.client_socket:DEBUG:Getting chunk from buffer.
+2026-02-19 20:16:09,867:btcp.client_socket:INFO:No (more) data was available for sending right now.
+2026-02-19 20:16:09,965:btcp.server_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:09,965:btcp.server_socket:DEBUG:Example timer already running.
+2026-02-19 20:16:09,965:btcp.server_socket:DEBUG:Example timer not yet elapsed.
+2026-02-19 20:16:09,967:btcp.client_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:09,967:btcp.client_socket:DEBUG:Getting chunk from buffer.
+2026-02-19 20:16:09,968:btcp.client_socket:INFO:No (more) data was available for sending right now.
+2026-02-19 20:16:10,066:btcp.server_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:10,066:btcp.server_socket:DEBUG:Example timer already running.
+2026-02-19 20:16:10,066:btcp.server_socket:DEBUG:Example timer not yet elapsed.
+2026-02-19 20:16:10,068:btcp.client_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:10,068:btcp.client_socket:DEBUG:Getting chunk from buffer.
+2026-02-19 20:16:10,068:btcp.client_socket:INFO:No (more) data was available for sending right now.
+2026-02-19 20:16:10,167:btcp.server_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:10,167:btcp.server_socket:DEBUG:Example timer already running.
+2026-02-19 20:16:10,167:btcp.server_socket:DEBUG:Example timer not yet elapsed.
+2026-02-19 20:16:10,169:btcp.client_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:10,169:btcp.client_socket:DEBUG:Getting chunk from buffer.
+2026-02-19 20:16:10,169:btcp.client_socket:INFO:No (more) data was available for sending right now.
+2026-02-19 20:16:10,268:btcp.server_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:10,268:btcp.server_socket:DEBUG:Example timer already running.
+2026-02-19 20:16:10,268:btcp.server_socket:DEBUG:Example timer not yet elapsed.
+2026-02-19 20:16:10,270:btcp.client_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:10,270:btcp.client_socket:DEBUG:Getting chunk from buffer.
+2026-02-19 20:16:10,270:btcp.client_socket:INFO:No (more) data was available for sending right now.
+2026-02-19 20:16:10,355:unittests.py:INFO:Process '_segment_length_server' (23884) completed gracefully
+2026-02-19 20:16:10,356:unittests.py:INFO:waiting for a process to finish for 1.992 seconds
+2026-02-19 20:16:10,356:unittests.py:INFO:Process '_segment_length_client' (23883) completed gracefully
+ok
+test_10_connect (__main__.T.test_10_connect) ... 2026-02-19 20:16:10,361:unittests.py:INFO:waiting for a process to finish for 5.000 seconds
+2026-02-19 20:16:10,363:btcp.client_socket:DEBUG:__init__ called
+2026-02-19 20:16:10,363:btcp.btcp_socket:DEBUG:__init__ called
+2026-02-19 20:16:10,363:btcp.btcp_socket:DEBUG:Socket initialized with window 10 and timeout 2 secs and isn 43015
+2026-02-19 20:16:10,363:btcp.lossy_layer:INFO:LossyLayer.__init__() was called
+2026-02-19 20:16:10,363:btcp.lossy_layer:INFO:Starting network thread
+2026-02-19 20:16:10,364:btcp.lossy_layer:INFO:Starting handle_incoming_segments
+2026-02-19 20:16:10,364:btcp.lossy_layer:INFO:Lossy layer initialized, listening on local address localhost & port 20000, remote address localhost & port 30000
+2026-02-19 20:16:10,364:btcp.client_socket:INFO:Socket initialized with sendbuf size 1000
+2026-02-19 20:16:10,364:btcp.client_socket:DEBUG:connect called
+2026-02-19 20:16:10,365:btcp.server_socket:DEBUG:__init__() called.
+2026-02-19 20:16:10,365:btcp.btcp_socket:DEBUG:__init__ called
+2026-02-19 20:16:10,365:btcp.btcp_socket:DEBUG:Socket initialized with window 10 and timeout 2 secs and isn 48479
+2026-02-19 20:16:10,365:btcp.lossy_layer:INFO:LossyLayer.__init__() was called
+2026-02-19 20:16:10,365:btcp.server_socket:INFO:Socket initialized with recvbuf size 1000
+2026-02-19 20:16:10,365:btcp.lossy_layer:INFO:Starting network thread
+2026-02-19 20:16:10,366:btcp.lossy_layer:INFO:Starting handle_incoming_segments
+2026-02-19 20:16:10,366:btcp.lossy_layer:INFO:Lossy layer initialized, listening on local address localhost & port 30000, remote address localhost & port 20000
+2026-02-19 20:16:10,366:btcp.server_socket:DEBUG:accept called
+2026-02-19 20:16:10,368:unittests.py:INFO:Process '_connect_client' (23889) completed gracefully
+2026-02-19 20:16:10,368:unittests.py:INFO:waiting for a process to finish for 4.993 seconds
+2026-02-19 20:16:10,368:unittests.py:INFO:Process '_connect_server' (23890) completed gracefully
+ok
+test_11_hello_world (__main__.T.test_11_hello_world) ... 2026-02-19 20:16:10,372:unittests.py:INFO:waiting for a process to finish for 5.000 seconds
+2026-02-19 20:16:10,375:btcp.client_socket:DEBUG:__init__ called
+2026-02-19 20:16:10,376:btcp.btcp_socket:DEBUG:__init__ called
+2026-02-19 20:16:10,376:btcp.btcp_socket:DEBUG:Socket initialized with window 10 and timeout 2 secs and isn 9094
+2026-02-19 20:16:10,376:btcp.lossy_layer:INFO:LossyLayer.__init__() was called
+2026-02-19 20:16:10,376:btcp.lossy_layer:INFO:Starting network thread
+2026-02-19 20:16:10,376:btcp.lossy_layer:INFO:Starting handle_incoming_segments
+2026-02-19 20:16:10,376:btcp.lossy_layer:INFO:Lossy layer initialized, listening on local address localhost & port 20000, remote address localhost & port 30000
+2026-02-19 20:16:10,377:btcp.client_socket:INFO:Socket initialized with sendbuf size 1000
+2026-02-19 20:16:10,377:btcp.client_socket:DEBUG:connect called
+2026-02-19 20:16:10,377:btcp.client_socket:DEBUG:send called
+2026-02-19 20:16:10,377:btcp.server_socket:DEBUG:__init__() called.
+2026-02-19 20:16:10,377:btcp.btcp_socket:DEBUG:__init__ called
+2026-02-19 20:16:10,377:btcp.client_socket:DEBUG:12 bytes passed to send
+2026-02-19 20:16:10,377:btcp.client_socket:INFO:Queueing data for transmission
+2026-02-19 20:16:10,377:btcp.client_socket:DEBUG:Cumulative data queued: 0 bytes
+2026-02-19 20:16:10,377:btcp.btcp_socket:DEBUG:Socket initialized with window 10 and timeout 2 secs and isn 10775
+2026-02-19 20:16:10,377:btcp.client_socket:DEBUG:Putting chunk in send queue.
+2026-02-19 20:16:10,377:btcp.lossy_layer:INFO:LossyLayer.__init__() was called
+2026-02-19 20:16:10,377:btcp.client_socket:INFO:Managed to queue 12 out of 12 bytes for transmission
+2026-02-19 20:16:10,377:btcp.server_socket:INFO:Socket initialized with recvbuf size 1000
+2026-02-19 20:16:10,377:btcp.lossy_layer:INFO:Starting network thread
+2026-02-19 20:16:10,378:btcp.lossy_layer:INFO:Starting handle_incoming_segments
+2026-02-19 20:16:10,378:btcp.lossy_layer:INFO:Lossy layer initialized, listening on local address localhost & port 30000, remote address localhost & port 20000
+2026-02-19 20:16:10,378:btcp.server_socket:DEBUG:accept called
+2026-02-19 20:16:10,378:btcp.server_socket:DEBUG:recv called
+2026-02-19 20:16:10,378:btcp.server_socket:INFO:Retrieving data from receive queue
+2026-02-19 20:16:10,378:btcp.server_socket:INFO:Blocking get for first chunk of data.
+2026-02-19 20:16:10,477:btcp.client_socket:DEBUG:lossy_layer_tick called
+2026-02-19 20:16:10,477:btcp.client_socket:DEBUG:Getting chunk from buffer.
+2026-02-19 20:16:10,477:btcp.client_socket:DEBUG:Got chunk with length 12:
+2026-02-19 20:16:10,477:btcp.client_socket:DEBUG:b'Hello world!'
+2026-02-19 20:16:10,477:btcp.client_socket:DEBUG:Padding chunk to full size
+2026-02-19 20:16:10,477:btcp.client_socket:DEBUG:Building segment from chunk.
+2026-02-19 20:16:10,477:btcp.btcp_socket:DEBUG:build_segment_header() called
+2026-02-19 20:16:10,477:btcp.btcp_socket:DEBUG:build_segment_header() done
+2026-02-19 20:16:10,477:btcp.client_socket:INFO:Sending segment.
+2026-02-19 20:16:10,477:btcp.lossy_layer:DEBUG:Attempting to send segment:
+2026-02-19 20:16:10,478:btcp.client_socket:DEBUG:Getting chunk from buffer.
+2026-02-19 20:16:10,478:btcp.client_socket:INFO:No (more) data was available for sending right now.
+2026-02-19 20:16:10,478:btcp.server_socket:DEBUG:lossy_layer_segment_received called
+2026-02-19 20:16:10,478:btcp.server_socket:DEBUG:b'#\x86\x00\x00\x00\x01\x00\x0c\x00\x00Hello world!\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+2026-02-19 20:16:10,478:btcp.server_socket:DEBUG:_closed_segment_received called
+2026-02-19 20:16:10,478:btcp.server_socket:WARNING:Segment received in CLOSED state.
+2026-02-19 20:16:10,478:btcp.server_socket:WARNING:Normally we wouldn't process this, but the rudimentary implementation never leaves the CLOSED state.
+2026-02-19 20:16:10,479:btcp.server_socket:DEBUG:Example timer not running.
+2026-02-19 20:16:10,479:btcp.server_socket:DEBUG:First chunk of data retrieved.
+2026-02-19 20:16:10,479:btcp.server_socket:DEBUG:Looping over rest of queue.
+2026-02-19 20:16:10,479:btcp.server_socket:DEBUG:Queue emptied or timeout reached
+2026-02-19 20:16:10,479:btcp.server_socket:INFO:bytearray(b'Hello world!')
+2026-02-19 20:16:10,481:unittests.py:INFO:Process '_hello_world_server' (23896) completed gracefully
+2026-02-19 20:16:10,481:unittests.py:INFO:waiting for a process to finish for 4.891 seconds
+2026-02-19 20:16:10,482:unittests.py:INFO:Process '_hello_world_client' (23895) completed gracefully
+ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 3.229s
+
+OK
