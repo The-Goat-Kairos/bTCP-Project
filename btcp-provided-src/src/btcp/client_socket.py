@@ -100,7 +100,158 @@ class BTCPClientSocket(BTCPSocket):
         function for each state.
         """
         logger.debug("lossy_layer_segment_received called")
-        raise_NotImplementedError("No implementation of lossy_layer_segment_received present. Read the comments & code of client_socket.py.")
+
+        result = self._common_segment_processing(segment)
+        if result is None: 
+            return
+        
+        seqnum, acknum, syn, ack, fin, window, length, data = result
+
+        handled = False
+        
+        if self._state == BTCPStates.SYN_SENT:
+            handled = self._handle_syn_sent(seqnum, acknum, syn, ack, fin, window, length, data)
+        elif self._state == BTCPStates.ESTABLISHED:
+            handled = self._handle_established(seqnum, acknum, syn, ack, fin, window, length, data)
+        elif self._state == BTCPStates.FIN_SENT:
+            handled = self._handle_fin_sent(seqnum, acknum, syn, ack, fin, window, length, data)
+        elif self._state == BTCPStates.CLOSING:
+            handled = self._handle_closing(seqnum, acknum, syn, ack, fin, window, length, data)
+        else:
+            logger.debug(f"Ignoring segment received in state {self._state}")
+
+        if ack:
+            logger.info("Acknowledged lossy layer segment received client side")
+
+    def _common_segment_processing(self, segment):
+        if len(segment) != SEGMENT_SIZE:
+            logger.warning("Received Segment with incorrect size")
+            return None
+        
+        if not self.verify_checksum(segment):
+            logger.warning("Checksum verification failed")
+            return None
+
+        try:
+            seqnum, acknum, syn, ack, fin, window, length, _ = self.unpack_segment_header(segment[:HEADER_SIZE])
+        except Exception as e:
+            logger.error(f"Failed to unpack header: {e}")
+            return None
+
+        data = segment[HEADER_SIZE:HEADER_SIZE + length] if length > 0 else b''
+        
+        return seqnum, acknum, syn, ack, fin, window, length, data
+    
+
+    # I got this from the Correct FSMs found in FSMs-studentversion.pdf
+    def _handle_syn_sent(self, seqnum, acknum, syn, ack, fin, window, length, data):
+        if syn and ack:
+            if acknum == (self._seqnum + 1) % 65535:
+                logger.info("Received SYN|ACK from server")
+                self._state = BTCPStates.ESTABLISHED
+                self._seqnum = (self._seqnum + 1) % 65535
+                self._send_ack(acknum=seqnum+1)
+                logger.info("Handshake completed?")
+                return True
+        return False
+
+    def _handle_established(self, seqnum, acknum, syn, ack, fin, window, length, data):
+        if fin:
+            logger.info("Received FIN from server so closing")
+            self._state = BTCPStates.CLOSING
+            self._send_fin_ack()
+            return True
+        if ack:
+            self._process_acknowledgement(acknum, window)
+            return True
+        
+        logger.debug("Ignored non-ACK/non-FIN segment in ESTABLISHED")
+
+        return False 
+
+    def _handle_fin_sent(self, seqnum, acknum, syn, ack, fin, window, length, data):
+        if fin and ack:
+            if acknum == (self._seqnum + 1) % 65536:
+                logger.info("Received FIN|ACK from server so connection closing")
+                self._state = BTCPStates.CLOSING
+                self._send_ack(acknum=acknum)
+                return True
+        logger.debug("Ignored unexpected segment in FIN_SENT")
+        return False
+
+    def _handle_closing(self, seqnum, acknum, syn, ack, fin, window, length, data):
+        if ack:
+            logger.info("Received final ACK in CLOSING so connection terminated")
+            self._state = BTCPStates.CLOSED
+            return True
+        logger.debug("Ignored segment in CLOSING")
+        return False
+    
+
+
+    def _send_ack(self, acknum, window=None):
+        # Helper function to send a pure ACK segment
+        if window is None:
+            window = self._window
+        # Build with wrong checksum
+        header = self.build_segment_header(
+            seqnum=self._seqnum, #acks without data do not advance seqnum
+            acknum=acknum,
+            syn_set=False,
+            ack_set=True,
+            fin_set=False,
+            window=window,
+            length=0
+        )
+
+        # Compute checksum
+        segment = header + b'\x00' * PAYLOAD_SIZE
+        checksum = self.in_cksum(segment)
+
+        header = self.build_segment_header(
+            seqnum=self._seqnum,
+            acknum=acknum,
+            syn_set=False,
+            ack_set=True,
+            fin_set=False,
+            window=window,
+            length=0,
+            checksum=checksum
+        )
+        segment = header + b'\x00' * PAYLOAD_SIZE
+        self._lossy_layer.send_segment(segment)
+        logger.debug(f"Sent ACK with acknum={acknum}")
+
+    def _send_fin_ack(self):
+        # Helper function to send a FIN|ACK segment
+        header = self.build_segment_header(
+            seqnum=self._seqnum,
+            acknum=0,
+            syn_set=False,
+            ack_set=True,
+            fin_set=True,
+            window=self._window,
+            length=0
+        )
+        segment = header + b'\x00' * PAYLOAD_SIZE
+        checksum = self.in_cksum(segment)
+        header = self.build_segment_header(
+            seqnum=self._seqnum,
+            acknum=0,
+            syn_set=False,
+            ack_set=True,
+            fin_set=True,
+            window=self._window,
+            length=0,
+            checksum=checksum
+        )
+        segment = header + b'\x00' * PAYLOAD_SIZE
+        self._lossy_layer.send_segment(segment)
+        logger.info("Sent FIN|ACK")
+
+    def _process_acknowledgement(self, acknum, window):
+        logger.debug(f"Processing ACK for acknum={acknum}, advertised window={window}")
+        pass
 
 
     def lossy_layer_tick(self):
@@ -195,6 +346,10 @@ class BTCPClientSocket(BTCPSocket):
         this project.
         """
         logger.debug("connect called")
+
+        logger.info("==== TEMPORARY: HARDCODING client_socket#connect() ====")
+        self._state = BTCPStates.ESTABLISHED
+        return
         #raise_NotImplementedError("No implementation of connect present. Read the comments & code of client_socket.py.")
 
 
@@ -267,6 +422,7 @@ class BTCPClientSocket(BTCPSocket):
         """
         logger.debug("shutdown called")
         time.sleep(self.timeout_secs * 1.5) 
+        self._state = BTCPStates.CLOSED
         # We're guessing the server will timeout in timeout_secs seconds,
         # and that we will have enough time in the remaining .5 * timeout_secs
         # to send anything the application layers requests.

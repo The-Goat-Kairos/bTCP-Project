@@ -27,7 +27,7 @@ class BTCPStates(IntEnum):
     ESTABLISHED = 4 # There's an obvious state that goes here. Give it a name.
     FIN_SENT    = 5
     CLOSING     = 6
-    __          = 7 # If you need more states, extend the Enum like this.
+    LAST_ACK    = 7
 
 
 class BTCPSignals(IntEnum):
@@ -82,7 +82,18 @@ class BTCPSocket:
         then the resulting checksum should be put in its place.
         """
         logger.debug("in_cksum() called")
-        raise_NotImplementedError("No implementation of in_cksum present. Read the comments & code of btcp_socket.py.")
+
+        if len(segment) % 2 != 0:
+            segment += b'\x00'  # shouldn't happen, but be safe
+
+        s = 0
+        for i in range(0, len(segment), 2):
+            w = (segment[i] << 8) + segment[i+1]
+            s += w
+            s = (s & 0xffff) + (s >> 16)  # carry wrap around
+        
+        s = ~s & 0xffff
+        return s
 
 
     @staticmethod
@@ -93,8 +104,7 @@ class BTCPSocket:
         that is, be sure to change the "0xABCD" below.
         """
         logger.debug("verify_cksum() called")
-        raise_NotImplementedError("No implementation of in_cksum present. Read the comments & code of btcp_socket.py.")
-        return BTCPSocket.in_cksum(segment) == 0xABCD
+        return BTCPSocket.in_cksum(segment) == 0
 
 
     @staticmethod
@@ -135,9 +145,14 @@ class BTCPSocket:
         than make a separate method for every individual field.
         """
         logger.debug("unpack_segment_header() called")
-        raise_NotImplementedError("No implementation of unpack_segment_header present. Read the comments & code of btcp_socket.py. You should really implement the packing / unpacking of the header into field values before doing anything else!")
-        logger.debug("unpack_segment_header() done")
 
+        seqnum, acknum, flag_byte, window, length, checksum = struct.unpack("!HHBBHH", header)
+        syn = bool(flag_byte & 0b100)   # bit 2
+        ack = bool(flag_byte & 0b010)   # bit 1  
+        fin = bool(flag_byte & 0b001)   # bit 0
+        
+        logger.debug("unpack_segment_header() done")
+        return seqnum, acknum, syn, ack, fin, window, length, checksum
 
 
 # Ignore the following code;  we use this to test the bTCP project.

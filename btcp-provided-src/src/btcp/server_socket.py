@@ -271,6 +271,10 @@ class BTCPServerSocket(BTCPSocket):
         this project.
         """
         logger.debug("accept called")
+
+        logger.info("==== TEMPORARY: HARDCODING server_socket#accept() ====")
+        self._state = BTCPStates.ESTABLISHED
+        return
         # raise_NotImplementedError("No implementation of accept present. Read the comments & code of server_socket.py.")
 
 
