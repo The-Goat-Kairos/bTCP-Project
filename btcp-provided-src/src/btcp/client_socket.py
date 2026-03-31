@@ -114,15 +114,15 @@ class BTCPClientSocket(BTCPSocket):
         seqnum, acknum, syn, ack, fin, window, length, data = result
         
         if self._state == BTCPStates.SYN_SENT:
-            self._handle_syn_sent(seqnum, acknum, syn, ack, fin, window, length, data)
+            self._syn_sent_segment_received(seqnum, acknum, syn, ack, fin, window, length, data)
         elif self._state == BTCPStates.ESTABLISHED:
-            self._handle_established(seqnum, acknum, syn, ack, fin, window, length, data)
+            self._established_segment_received(seqnum, acknum, syn, ack, fin, window, length, data)
         elif self._state == BTCPStates.FIN_SENT:
-            self._handle_fin_sent(seqnum, acknum, syn, ack, fin, window, length, data)
+            self._fin_sent_segment_received(seqnum, acknum, syn, ack, fin, window, length, data)
         elif self._state == BTCPStates.CLOSING:
-            self._handle_closing(seqnum, acknum, syn, ack, fin, window, length, data)
+            self._closing_segment_received(seqnum, acknum, syn, ack, fin, window, length, data)
         else:
-            logger.debug(f"Ignoring segment received in state {self._state}")
+            logger.debug(f"Ignoring segment received by client in state {self._state.name}")
 
         if ack:
             logger.info("Acknowledged lossy layer segment received client side")
@@ -148,7 +148,7 @@ class BTCPClientSocket(BTCPSocket):
     
 
     # I got this from the Correct FSMs found in FSMs-studentversion.pdf
-    def _handle_syn_sent(self, seqnum, acknum, syn, ack, fin, window, length, data):
+    def _syn_sent_segment_received(self, seqnum, acknum, syn, ack, fin, window, length, data):
         if syn and ack:
             expected_ack = (self._seqnum + 1) % 65536
             if acknum == expected_ack:
@@ -166,7 +166,7 @@ class BTCPClientSocket(BTCPSocket):
         logger.info("Ignored unexpected segment in SYN_SENT")
         return False
 
-    def _handle_established(self, seqnum, acknum, syn, ack, fin, window, length, data):
+    def _established_segment_received(self, seqnum, acknum, syn, ack, fin, window, length, data):
         if fin:
             logger.info("Received FIN from server so closing")
             self._state = BTCPStates.CLOSING
@@ -179,7 +179,7 @@ class BTCPClientSocket(BTCPSocket):
         logger.debug("Ignored non-ACK/non-FIN segment in ESTABLISHED")
         return False 
 
-    def _handle_fin_sent(self, seqnum, acknum, syn, ack, fin, window, length, data):
+    def _fin_sent_segment_received(self, seqnum, acknum, syn, ack, fin, window, length, data):
         if fin and ack:
             if acknum == (self._seqnum + 1) % 65536:
                 logger.info("Received FIN|ACK from server so connection closing")
@@ -189,7 +189,7 @@ class BTCPClientSocket(BTCPSocket):
         logger.debug("Ignored unexpected segment in FIN_SENT")
         return False
 
-    def _handle_closing(self, seqnum, acknum, syn, ack, fin, window, length, data):
+    def _closing_segment_received(self, seqnum, acknum, syn, ack, fin, window, length, data):
         if ack:
             logger.info("Received final ACK in CLOSING so connection terminated")
             self._state = BTCPStates.CLOSED
@@ -201,7 +201,7 @@ class BTCPClientSocket(BTCPSocket):
 
 
     def _send_ack(self, acknum, window=None):
-        # Helper function to send a pure ACK segment
+        """Helper function to send a pure ACK segment"""
         if window is None:
             window = self._window
         # Build with wrong checksum
@@ -212,7 +212,8 @@ class BTCPClientSocket(BTCPSocket):
             ack_set=True,
             fin_set=False,
             window=window,
-            length=0
+            length=0,
+            checksum=0
         )
 
         # Compute checksum
@@ -234,7 +235,7 @@ class BTCPClientSocket(BTCPSocket):
         logger.debug(f"Sent ACK with acknum={acknum}")
 
     def _send_fin_ack(self):
-        # Helper function to send a FIN|ACK segment
+        """Helper function to send a FIN|ACK segment"""
         header = self.build_segment_header(
             seqnum=self._seqnum,
             acknum=0,
@@ -242,7 +243,8 @@ class BTCPClientSocket(BTCPSocket):
             ack_set=True,
             fin_set=True,
             window=self._window,
-            length=0
+            length=0,
+            checksum=0
         )
         segment = header + b'\x00' * PAYLOAD_SIZE
         checksum = self.in_cksum(segment)
@@ -482,9 +484,9 @@ class BTCPClientSocket(BTCPSocket):
             self._lossy_layer.send_segment(segment)
             logger.info(f"Sent SYN with seq={self._seqnum}")
 
-            start_time = time.monotonic()
+            wait_start = time.monotonic()
             while self._state == BTCPStates.SYN_SENT:
-                if time.monotonic() - start_time > 2.0: #TODO: per-retry timeout
+                if time.monotonic() - wait_start > 2.0: #TODO: per-retry timeout
                     break
                 time.sleep(0.05) # avoid busy waiting?
             
@@ -618,7 +620,7 @@ class BTCPClientSocket(BTCPSocket):
 
             wait_start = time.monotonic()
             while self._state == BTCPStates.FIN_SENT:
-                if time.monotonic() - start_time > 2.0: #TODO: per-retry timeout
+                if time.monotonic() - wait_start > 2.0: #TODO: per-retry timeout
                     break
                 time.sleep(0.05)
 

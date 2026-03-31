@@ -60,8 +60,10 @@ class BTCPServerSocket(BTCPSocket):
         self._recvbuf = queue.Queue(maxsize=1000)
         logger.info("Socket initialized with recvbuf size 1000")
 
+        self._remote_isn = 0
+        self._send_base = 0
+        self._next_seqnum = 0
         # Make sure the example timer exists from the start.
-        self._example_timer = None
         self._lossy_layer.start_network_thread()
 
 
@@ -117,68 +119,112 @@ class BTCPServerSocket(BTCPSocket):
         function for each state.
         """
         logger.debug("lossy_layer_segment_received called")
-        logger.debug(segment)
-        # raise_NotImplementedError("Only rudimentary implementation of lossy_layer_segment_received present. Read the comments & code of server_socket.py, then remove the NotImplementedError.")
+
+        result = self._common_segment_processing(segment)
+        if result is None:
+            return # just bail
+
+        # seqnum, acknum, syn, ack, fin, window, length, data = result
 
         match self._state:
             case BTCPStates.CLOSED:
                 self._closed_segment_received(segment)
             case BTCPStates.CLOSING:
                 self._closing_segment_received(segment)
+            case BTCPStates.SYN_RCVD:
+                self._syn_rcvd_segment_received(segment)
+            case BTCPStates.ESTABLISHED:
+                self._established_segment_received(segment)
             case _:
-                self._other_segment_received(segment)
+                logger.debug(f"Ignoring segment received by server in state {self._state.name}")
 
-        self._expire_timers()
+        # self._expire_timers()
         return
 
+    def _common_segment_processing(self, segment):
+        if len(segment) != SEGMENT_SIZE:
+            logger.warning("Received Segment with incorrect size")
+            return None
+        
+        if not self.verify_checksum(segment):
+            logger.warning("Checksum verification failed")
+            return None
+
+        try:
+            seqnum, acknum, syn, ack, fin, window, length, _ = self.unpack_segment_header(segment[:HEADER_SIZE])
+        except Exception as e:
+            logger.error(f"Failed to unpack header: {e}")
+            return None
+
+        data = segment[HEADER_SIZE:HEADER_SIZE + length] if length > 0 else b''
+        
+        return seqnum, acknum, syn, ack, fin, window, length, data
 
     def _closed_segment_received(self, segment):
-        """Helper method handling received segment in CLOSED state
-        """
+        """Helper method handling received segment in CLOSED state"""
+        seqnum, acknum, syn, ack, fin, window, length, data = self._common_segment_processing(segment)
         logger.debug("_closed_segment_received called")
-        logger.warning("Segment received in CLOSED state.")
-        logger.warning("Normally we wouldn't process this, but the "
-                       "rudimentary implementation never leaves the CLOSED "
-                       "state.")
-        # Get length from header. Change this to a proper segment header unpack
-        # after implementing BTCPSocket.unpack_segment_header in btcp_socket.py
-        datalen, = struct.unpack("!H", segment[6:8])
-        # Slice data from incoming segment.
-        chunk = segment[HEADER_SIZE:HEADER_SIZE + datalen]
-        # Pass data into receive buffer so that the application thread can
-        # retrieve it.
-        try:
-            self._recvbuf.put_nowait(chunk)
-        except queue.Full:
-            # Data gets dropped if the receive buffer is full. You need to
-            # ensure this doesn't happen by using window sizes and not
-            # acknowledging dropped data.
-            # Initially, while still developing other features,
-            # you can also just set the size limitation on the Queue
-            # much higher, or remove it altogether.
-            logger.critical("Data got dropped!")
-            logger.debug(chunk)
+        
+        if syn and not ack and not fin:
+            logger.info(f"Received SYN from client (seq={seqnum})")
+            self._state = BTCPStates.SYN_RCVD
+            self._remote_isn = seqnum                       # store client's ISN (x)
+            self._send_syn_ack(acknum=self._seqnum + 1)     # ack = x + 1
+        else:
+            logger.debug("Ignored non-SYN segment in CLOSED state")
 
 
     def _closing_segment_received(self, segment):
-        """Helper method handling received segment in CLOSING state
+        """Helper method handling received segment in CLOSING state"""
+        seqnum, acknum, syn, ack, fin, window, length, data = self._common_segment_processing(segment)
+        if ack:
+            logger.info("Received final ACK so terminating")
+            self._state = BTCPStates.CLOSED
+            return True
+        
+        logger.debug("Ignored segment received by server in CLOSING")
+        return False
+    
 
-        Currently solely for demonstration purposes.
-        """
-        logger.debug("_closing_segment_received called")
-        logger.info("Segment received in CLOSING state.")
-        logger.info("This needs to be properly implemented. "
-                    "Currently only here for demonstration purposes.")
+    def _syn_rcvd_segment_received(self, segment):
+        """Helper method handling received segment in SYN_RCVD state"""
+        seqnum, acknum, syn, ack, fin, window, length, data = self._common_segment_processing(segment)
+        if ack and not syn and not fin:
+            expected_ack = (self._seqnum + 1) % 65536
+            if acknum == expected_ack:
+                logger.info("Received final ACK of handhake")
+                self._state = BTCPStates.ESTABLISHED
+                self._next_seqnum = self._seqnum + 1
+                return True
+        
+        logger.debug("Ignored unexpected segment received by SERVER in SYN_RCVD")
+        return False
 
 
-    def _other_segment_received(self, segment):
-        """Helper method handling received segment in any other state
+    def _established_segment_received(self, segment):
+        """Helper method handling received segment in ESTABLISHED state"""
+        seqnum, acknum, syn, ack, fin, window, length, data = self._common_segment_processing(segment)
+        if fin:
+            logger.info("Received FIN from client")
+            self._state = BTCPStates.CLOSING
+            self._send_fin_ack()
+            return True
+        
+        if length > 0 and ack: #data segment
+            try:
+                self._recvbuf.put_nowait(data)
+                logger.debug(f"Delivered {length} bytes to recv buffer")
+            except queue.Full:
+                logger.warning("Receive buffer full so dropping data")
+            
+            self._send_ack(acknum=seqnum+1, window=self._window)
+            return True
 
-        Currently solely for demonstration purposes.
-        """
-        logger.debug("_other_segment_received called")
-        logger.info("Segment received in %s state",
-                    self._state)
+        if ack:
+            pass
+
+        logger.debug("Ignored segment received by server in ESTABLISHED")
+        return False
 
 
     def lossy_layer_tick(self):
@@ -203,8 +249,8 @@ class BTCPServerSocket(BTCPSocket):
         lossy_layer_segment_received or lossy_layer_tick.
         """
         logger.debug("lossy_layer_tick called")
-        self._start_example_timer()
-        self._expire_timers()
+        # self._start_example_timer()
+        # self._expire_timers()
         # raise_NotImplementedError("No implementation of lossy_layer_tick present. Read the comments & code of server_socket.py.")
 
 
@@ -213,26 +259,118 @@ class BTCPServerSocket(BTCPSocket):
     # You *do* have to call _expire_timers() from *both* lossy_layer_tick
     # and lossy_layer_segment_received, for reasons explained in
     # lossy_layer_tick.
-    def _start_example_timer(self):
-        if not self._example_timer:
-            logger.debug("Starting example timer.")
-            # Time in *nano*seconds, not milli- or microseconds.
-            # Using a monotonic clock ensures independence of weird stuff
-            # like leap seconds and timezone changes.
-            self._example_timer = time.monotonic_ns()
-        else:
-            logger.debug("Example timer already running.")
+    # def _start_example_timer(self):
+    #     if not self._example_timer:
+    #         logger.debug("Starting example timer.")
+    #         # Time in *nano*seconds, not milli- or microseconds.
+    #         # Using a monotonic clock ensures independence of weird stuff
+    #         # like leap seconds and timezone changes.
+    #         self._example_timer = time.monotonic_ns()
+    #     else:
+    #         logger.debug("Example timer already running.")
 
 
-    def _expire_timers(self):
-        curtime = time.monotonic_ns()
-        if not self._example_timer:
-            logger.debug("Example timer not running.")
-        elif curtime - self._example_timer > self.timeout_nanosecs:
-            logger.debug("Example timer elapsed.")
-            self._example_timer = None
-        else:
-            logger.debug("Example timer not yet elapsed.")
+    # def _expire_timers(self):
+    #     curtime = time.monotonic_ns()
+    #     if not self._example_timer:
+    #         logger.debug("Example timer not running.")
+    #     elif curtime - self._example_timer > self.timeout_nanosecs:
+    #         logger.debug("Example timer elapsed.")
+    #         self._example_timer = None
+    #     else:
+    #         logger.debug("Example timer not yet elapsed.")
+
+    def _send_ack(self, acknum, window=None):
+        """Helper function to send a pure ACK segment"""
+        if window is None:
+            window = self._window
+        # Build with wrong checksum
+        header = self.build_segment_header(
+            seqnum=self._seqnum, #acks without data do not advance seqnum
+            acknum=acknum,
+            syn_set=False,
+            ack_set=True,
+            fin_set=False,
+            window=window,
+            length=0,
+            checksum=0
+        )
+
+        # Compute checksum
+        segment = header + b'\x00' * PAYLOAD_SIZE
+        checksum = self.in_cksum(segment)
+
+        header = self.build_segment_header(
+            seqnum=self._seqnum,
+            acknum=acknum,
+            syn_set=False,
+            ack_set=True,
+            fin_set=False,
+            window=window,
+            length=0,
+            checksum=checksum
+        )
+        segment = header + b'\x00' * PAYLOAD_SIZE
+        self._lossy_layer.send_segment(segment)
+        logger.debug(f"Sent ACK with acknum={acknum}")
+
+    def _send_syn_ack(self, acknum):
+        """Helper function to send a SYN|ACK segment"""
+        header = self.build_segment_header(
+            seqnum=self._seqnum,
+            acknum=acknum,
+            syn_set=True,
+            ack_set=True,
+            fin_set=False,
+            window=self._window,
+            length=0,
+            checksum=0
+        )
+
+        segment = header + b'\x00' * PAYLOAD_SIZE
+        checksum = self.in_cksum(segment)
+
+        header = self.build_segment_header(
+            seqnum=self._seqnum,
+            acknum=acknum,
+            syn_set=True,
+            ack_set=True,
+            fin_set=False,
+            window=self._window,
+            length=0,
+            checksum=checksum
+        )
+
+        segment = header + b'\x00' * PAYLOAD_SIZE
+        self._lossy_layer.send_segment(segment)
+        logger.info(f"Sent SYN|ACK (seq={self._seqnum}, ack={acknum})")
+
+    def _send_fin_ack(self):
+        """Helper function to send a FIN|ACK segment"""
+        header = self.build_segment_header(
+            seqnum=self._seqnum,
+            acknum=0,
+            syn_set=False,
+            ack_set=True,
+            fin_set=True,
+            window=self._window,
+            length=0
+        )
+        segment = header + b'\x00' * PAYLOAD_SIZE
+        checksum = self.in_cksum(segment)
+        header = self.build_segment_header(
+            seqnum=self._seqnum,
+            acknum=0,
+            syn_set=False,
+            ack_set=True,
+            fin_set=True,
+            window=self._window,
+            length=0,
+            checksum=checksum
+        )
+        segment = header + b'\x00' * PAYLOAD_SIZE
+        self._lossy_layer.send_segment(segment)
+        logger.info("Sent FIN|ACK")
 
 
     ###########################################################################
@@ -272,10 +410,15 @@ class BTCPServerSocket(BTCPSocket):
         """
         logger.debug("accept called")
 
-        logger.info("==== TEMPORARY: HARDCODING server_socket#accept() ====")
-        self._state = BTCPStates.ESTABLISHED
-        return
-        # raise_NotImplementedError("No implementation of accept present. Read the comments & code of server_socket.py.")
+        start_time = time.monotonic()
+
+        while self._state != BTCPStates.ESTABLISHED:
+            if time.monotonic() - start_time > self.timeout_secs:
+                logger.error("Accept timeout reached")
+                return
+            time.sleep(0.05)
+
+        logger.info("Connection accepted")
 
 
     def recv(self):

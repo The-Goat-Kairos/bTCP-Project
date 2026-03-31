@@ -87,12 +87,16 @@ class BTCPSocket:
             segment += b'\x00'  # shouldn't happen, but be safe
 
         s = 0
+        # sum all 16 bit words into s
         for i in range(0, len(segment), 2):
-            w = (segment[i] << 8) + segment[i+1]
-            s += w
-            s = (s & 0xffff) + (s >> 16)  # carry wrap around
-        
-        s = ~s & 0xffff
+            w = (segment[i] << 8) + segment[i+1] # make each pair of bytes one 16-bit word
+            s += w # sum it
+
+        # fold the carry bits until no carry remains
+        while s >> 16: 
+            s = (s & 0xFFFF) + (s >> 16)       
+
+        s = ~s & 0xffff # one's complement
         return s
 
 
