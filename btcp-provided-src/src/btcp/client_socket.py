@@ -155,6 +155,7 @@ class BTCPClientSocket(BTCPSocket):
                 logger.info("Received SYN|ACK from server")
         
                 self._state = BTCPStates.ESTABLISHED
+                self._send_window = window
                 self._seqnum = expected_ack
                 self._send_base = expected_ack
 
@@ -242,7 +243,7 @@ class BTCPClientSocket(BTCPSocket):
             syn_set=False,
             ack_set=True,
             fin_set=True,
-            window=self._window,
+            window=self._send_window,
             length=0,
             checksum=0
         )
@@ -254,7 +255,7 @@ class BTCPClientSocket(BTCPSocket):
             syn_set=False,
             ack_set=True,
             fin_set=True,
-            window=self._window,
+            window=self._send_window,
             length=0,
             checksum=checksum
         )
@@ -372,7 +373,7 @@ class BTCPClientSocket(BTCPSocket):
                 syn_set=False,
                 ack_set=False,
                 fin_set=False,
-                window=self._window,
+                window=self._send_window,
                 length=datalen,
                 checksum=0
             )
@@ -387,7 +388,7 @@ class BTCPClientSocket(BTCPSocket):
                 syn_set=False,
                 ack_set=False,
                 fin_set=False,
-                window=self._window,
+                window=self._send_window,
                 length=datalen,
                 checksum=checksum
             )
@@ -463,7 +464,7 @@ class BTCPClientSocket(BTCPSocket):
                 syn_set=True,
                 ack_set=False,
                 fin_set=False,
-                window=self._window,
+                window=self._send_window,
                 length=0,
                 checksum=0
             )
@@ -475,7 +476,7 @@ class BTCPClientSocket(BTCPSocket):
                 syn_set=True,
                 ack_set=False,
                 fin_set=False,
-                window=self._window,
+                window=self._send_window,
                 length=0,
                 checksum=checksum
             )
@@ -483,13 +484,15 @@ class BTCPClientSocket(BTCPSocket):
 
             self._lossy_layer.send_segment(segment)
             logger.info(f"Sent SYN with seq={self._seqnum}")
-
+            print("What the client is sending in BTCPClientSocket.connect:")
+            print(self._common_segment_processing(segment))
             wait_start = time.monotonic()
             while self._state == BTCPStates.SYN_SENT:
-                if time.monotonic() - wait_start > 2.0: #TODO: per-retry timeout
+                if time.monotonic() - wait_start > 0.1: #TODO: per-retry timeout
                     break
                 time.sleep(0.05) # avoid busy waiting?
             
+            logger.info("Current state in client is %s", self._state.name)
             if self._state == BTCPStates.ESTABLISHED:
                 logger.info("Handshake completed succesfully")
                 return
@@ -497,7 +500,7 @@ class BTCPClientSocket(BTCPSocket):
             retry_count += 1
             logger.warning(f"Handshake attempt {retry_count} failed, retrying...")
         
-            logger.error("Max retries exceeded during connect")
+        logger.error("Max retries exceeded during connect")
         self._state = BTCPStates.CLOSED
 
 
@@ -596,7 +599,7 @@ class BTCPClientSocket(BTCPSocket):
                 syn_set=False,
                 ack_set=False,
                 fin_set=True,
-                window=self._window,
+                window=self._send_window,
                 length=0,
                 checksum=0
             )
@@ -609,7 +612,7 @@ class BTCPClientSocket(BTCPSocket):
                 syn_set=False,
                 ack_set=False,
                 fin_set=True,
-                window=self._window,
+                window=self._send_window,
                 length=0,
                 checksum=checksum
             )
@@ -620,7 +623,7 @@ class BTCPClientSocket(BTCPSocket):
 
             wait_start = time.monotonic()
             while self._state == BTCPStates.FIN_SENT:
-                if time.monotonic() - wait_start > 2.0: #TODO: per-retry timeout
+                if time.monotonic() - wait_start > 0.1: #TODO: per-retry timeout
                     break
                 time.sleep(0.05)
 

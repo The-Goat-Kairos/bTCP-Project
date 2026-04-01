@@ -61,8 +61,8 @@ class BTCPServerSocket(BTCPSocket):
         logger.info("Socket initialized with recvbuf size 1000")
 
         self._remote_isn = 0
-        self._send_base = 0
         self._next_seqnum = 0
+        self._receive_window = window
         # Make sure the example timer exists from the start.
         self._lossy_layer.start_network_thread()
 
@@ -128,18 +128,17 @@ class BTCPServerSocket(BTCPSocket):
 
         match self._state:
             case BTCPStates.CLOSED:
-                self._closed_segment_received(segment)
+                self._closed_segment_received(result)
             case BTCPStates.CLOSING:
-                self._closing_segment_received(segment)
+                self._closing_segment_received(result)
             case BTCPStates.SYN_RCVD:
-                self._syn_rcvd_segment_received(segment)
+                self._syn_rcvd_segment_received(result)
             case BTCPStates.ESTABLISHED:
-                self._established_segment_received(segment)
+                self._established_segment_received(result)
             case _:
                 logger.debug(f"Ignoring segment received by server in state {self._state.name}")
 
         # self._expire_timers()
-        return
 
     def _common_segment_processing(self, segment):
         if len(segment) != SEGMENT_SIZE:
@@ -158,25 +157,29 @@ class BTCPServerSocket(BTCPSocket):
 
         data = segment[HEADER_SIZE:HEADER_SIZE + length] if length > 0 else b''
         
+        print("What the server is receiving in BTCPServerSocket._common_segment_processing:")
+        print(seqnum, acknum, syn, ack, fin, window, length, data)
         return seqnum, acknum, syn, ack, fin, window, length, data
 
-    def _closed_segment_received(self, segment):
+    def _closed_segment_received(self, result):
         """Helper method handling received segment in CLOSED state"""
-        seqnum, acknum, syn, ack, fin, window, length, data = self._common_segment_processing(segment)
+        seqnum, acknum, syn, ack, fin, window, length, data = result
         logger.debug("_closed_segment_received called")
-        
+        logger.debug("syn %i, ack %i, fin %i", syn, ack, fin)
+        print("HELPPPPPPPPPPPP: ", syn, ack, fin)
         if syn and not ack and not fin:
             logger.info(f"Received SYN from client (seq={seqnum})")
             self._state = BTCPStates.SYN_RCVD
-            self._remote_isn = seqnum                       # store client's ISN (x)
-            self._send_syn_ack(acknum=self._seqnum + 1)     # ack = x + 1
+            self._remote_isn = seqnum                           # store client's ISN (x)
+            self._send_syn_ack(acknum=seqnum + 1)     # ack = x + 1
+            logger.debug("Closed segment received and sent SYN|ACK")
         else:
             logger.debug("Ignored non-SYN segment in CLOSED state")
 
 
-    def _closing_segment_received(self, segment):
+    def _closing_segment_received(self, result):
         """Helper method handling received segment in CLOSING state"""
-        seqnum, acknum, syn, ack, fin, window, length, data = self._common_segment_processing(segment)
+        seqnum, acknum, syn, ack, fin, window, length, data = result
         if ack:
             logger.info("Received final ACK so terminating")
             self._state = BTCPStates.CLOSED
@@ -186,38 +189,39 @@ class BTCPServerSocket(BTCPSocket):
         return False
     
 
-    def _syn_rcvd_segment_received(self, segment):
+    def _syn_rcvd_segment_received(self, result):
         """Helper method handling received segment in SYN_RCVD state"""
-        seqnum, acknum, syn, ack, fin, window, length, data = self._common_segment_processing(segment)
+        seqnum, acknum, syn, ack, fin, window, length, data = result
         if ack and not syn and not fin:
             expected_ack = (self._seqnum + 1) % 65536
             if acknum == expected_ack:
                 logger.info("Received final ACK of handhake")
                 self._state = BTCPStates.ESTABLISHED
-                self._next_seqnum = self._seqnum + 1
+                self._next_seqnum = expected_ack
                 return True
         
         logger.debug("Ignored unexpected segment received by SERVER in SYN_RCVD")
         return False
 
 
-    def _established_segment_received(self, segment):
+    def _established_segment_received(self, result):
         """Helper method handling received segment in ESTABLISHED state"""
-        seqnum, acknum, syn, ack, fin, window, length, data = self._common_segment_processing(segment)
+        seqnum, acknum, syn, ack, fin, window, length, data = result
         if fin:
             logger.info("Received FIN from client")
             self._state = BTCPStates.CLOSING
             self._send_fin_ack()
             return True
         
-        if length > 0 and ack: #data segment
+        if length > 0: #data segment
             try:
                 self._recvbuf.put_nowait(data)
                 logger.debug(f"Delivered {length} bytes to recv buffer")
             except queue.Full:
                 logger.warning("Receive buffer full so dropping data")
             
-            self._send_ack(acknum=seqnum+1, window=self._window)
+            self._update_receiver_window()
+            self._send_ack(acknum=seqnum+1, window=self._receive_window)
             return True
 
         if ack:
@@ -226,6 +230,9 @@ class BTCPServerSocket(BTCPSocket):
         logger.debug("Ignored segment received by server in ESTABLISHED")
         return False
 
+    def _update_receiver_window(self):
+        current_queued = self._recvbuf.qsize()
+        self._receive_window = max(1, self._window - current_queued)
 
     def lossy_layer_tick(self):
         """Called by the lossy layer whenever no segment has arrived for
@@ -283,7 +290,7 @@ class BTCPServerSocket(BTCPSocket):
     def _send_ack(self, acknum, window=None):
         """Helper function to send a pure ACK segment"""
         if window is None:
-            window = self._window
+            window = self._receive_window
         # Build with wrong checksum
         header = self.build_segment_header(
             seqnum=self._seqnum, #acks without data do not advance seqnum
@@ -322,7 +329,7 @@ class BTCPServerSocket(BTCPSocket):
             syn_set=True,
             ack_set=True,
             fin_set=False,
-            window=self._window,
+            window=self._receive_window,
             length=0,
             checksum=0
         )
@@ -336,7 +343,7 @@ class BTCPServerSocket(BTCPSocket):
             syn_set=True,
             ack_set=True,
             fin_set=False,
-            window=self._window,
+            window=self._receive_window,
             length=0,
             checksum=checksum
         )
@@ -353,7 +360,7 @@ class BTCPServerSocket(BTCPSocket):
             syn_set=False,
             ack_set=True,
             fin_set=True,
-            window=self._window,
+            window=self._receive_window,
             length=0
         )
         segment = header + b'\x00' * PAYLOAD_SIZE
@@ -364,7 +371,7 @@ class BTCPServerSocket(BTCPSocket):
             syn_set=False,
             ack_set=True,
             fin_set=True,
-            window=self._window,
+            window=self._receive_window,
             length=0,
             checksum=checksum
         )
@@ -467,26 +474,37 @@ class BTCPServerSocket(BTCPSocket):
         data = bytearray()
         logger.info("Retrieving data from receive queue")
         try:
-            # Wait until one segment becomes available in the buffer, or
-            # timeout signalling disconnect.
-            logger.info("Blocking get for first chunk of data.")
-            data.extend(self._recvbuf.get(block=True, timeout=self.timeout_secs)) 
-            logger.debug("First chunk of data retrieved.")
-            logger.debug("Looping over rest of queue.")
+            data.extend(self._recvbuf.get(block=True, timeout=self.timeout_secs))
             while True:
-                # Empty the rest of the buffer, until queue.Empty exception
-                # exits the loop. If that happens, data contains received
-                # segments so that will *not* signal disconnect.
                 data.extend(self._recvbuf.get_nowait())
-                logger.debug("Additional chunk of data retrieved.")
         except queue.Empty:
-            logger.debug("Queue emptied or timeout reached")
-            pass # (Not break: the exception itself has exited the loop)
-        logger.info(data)
+            pass
+
         if not data:
-            logger.info(f"No data received for {self.timeout_secs} seconds.")
-            logger.info("Returning empty bytes to caller, signalling disconnect.")
+            logger.info("recv() returning empty bytes")
+
         return bytes(data)
+        # try:
+        #     # Wait until one segment becomes available in the buffer, or
+        #     # timeout signalling disconnect.
+        #     logger.info("Blocking get for first chunk of data.")
+        #     data.extend(self._recvbuf.get(block=True, timeout=self.timeout_secs)) 
+        #     logger.debug("First chunk of data retrieved.")
+        #     logger.debug("Looping over rest of queue.")
+        #     while True:
+        #         # Empty the rest of the buffer, until queue.Empty exception
+        #         # exits the loop. If that happens, data contains received
+        #         # segments so that will *not* signal disconnect.
+        #         data.extend(self._recvbuf.get_nowait())
+        #         logger.debug("Additional chunk of data retrieved.")
+        # except queue.Empty:
+        #     logger.debug("Queue emptied or timeout reached")
+        #     pass # (Not break: the exception itself has exited the loop)
+        # logger.info(data)
+        # if not data:
+        #     logger.info(f"No data received for {self.timeout_secs} seconds.")
+        #     logger.info("Returning empty bytes to caller, signalling disconnect.")
+        # return bytes(data)
 
 
     def close(self):

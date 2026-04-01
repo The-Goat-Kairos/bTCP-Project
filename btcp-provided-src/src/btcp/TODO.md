@@ -1,0 +1,3 @@
+- Check if server_socket and client_socket are correct
+- Client socket doesn't propagate the servers acknowledgement/sequence numbers correctly I think
+- Whatever
