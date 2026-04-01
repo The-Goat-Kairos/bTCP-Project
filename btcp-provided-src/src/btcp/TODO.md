@@ -1,3 +1,12 @@
-- Check if server_socket and client_socket are correct
-- Client socket doesn't propagate the servers acknowledgement/sequence numbers correctly I think
-- Whatever
+- Check for remaining tests that aren't passing
+  - [ ] Test 21 (Duplicates)
+  - [x] Test 22 (Corruption)
+  - [ ] Test 30 (Reordering)
+  - [ ] Test 60 (Drop every other)
+  - [x] Test 70 (Drop every other ack)
+  - [ ] Test 80 (Drop every other)
+  - [ ] Test 40
+  - [ ] Test 61
+  - [ ] Test 62
+- Try using client_app.py and server_app.py
+- Merge both sockets
