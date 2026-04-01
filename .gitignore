@@ -4,3 +4,4 @@ __pycache__
 # (Note to teachers:  please keep contents in sync with `src-impl/.gitignore`.)
 large_input.py
 ./btcp-provided-src/src/large_input.py
+.vscode
