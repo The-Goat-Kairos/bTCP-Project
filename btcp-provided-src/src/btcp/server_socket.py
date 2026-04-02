@@ -47,7 +47,10 @@ class BTCPServerSocket(BTCPSocket):
         """Constructor for the bTCP server socket. Allocates local resources
         and starts an instance of the Lossy Layer.
         """
+
         logger.debug("__init__() called.")
+        self._expected_seqnum = None
+        self._reorder_buffer = {}
         super().__init__(window, timeout, isn)
         self._lossy_layer = LossyLayer(self, SERVER_IP, SERVER_PORT, CLIENT_IP, CLIENT_PORT)
 
@@ -171,6 +174,7 @@ class BTCPServerSocket(BTCPSocket):
             logger.info(f"Received SYN from client (seq={seqnum})")
             self._state = BTCPStates.SYN_RCVD
             self._remote_isn = seqnum                           # store client's ISN (x)
+            self._expected_seqnum = (seqnum + 1) % 65536
             self._send_syn_ack(acknum=seqnum + 1)     # ack = x + 1
             logger.debug("Closed segment received and sent SYN|ACK")
         else:
@@ -212,16 +216,33 @@ class BTCPServerSocket(BTCPSocket):
             self._state = BTCPStates.CLOSING
             self._send_fin_ack()
             return True
-        
-        if length > 0: #data segment
-            try:
-                self._recvbuf.put_nowait(data)
-                logger.debug(f"Delivered {length} bytes to recv buffer")
-            except queue.Full:
-                logger.warning("Receive buffer full so dropping data")
-            
-            self._update_receiver_window()
-            self._send_ack(acknum=seqnum+1, window=self._receive_window)
+                
+        if length > 0:
+            if seqnum == self._expected_seqnum:
+                self._deliver_data(data)
+
+                self._expected_seqnum = (self._expected_seqnum + 1) % 65536
+
+                #  Check buffered packets
+                while self._expected_seqnum in self._reorder_buffer:
+                    buffered_data = self._reorder_buffer.pop(self._expected_seqnum)
+                    self._deliver_data(buffered_data)
+                    self._expected_seqnum = (self._expected_seqnum + 1) % 65536
+
+            elif (seqnum - self._expected_seqnum) % 65536 < 32768:
+                # buffer it
+                if seqnum not in self._reorder_buffer:
+                    self._reorder_buffer[seqnum] = data
+                    logger.debug(f"Buffered out-of-order segment seq={seqnum}")
+                else:
+                    logger.debug(f"Duplicate buffered segment seq={seqnum}")
+
+            else:
+                # Old / duplicate packet should be ignored
+                logger.debug(f"Ignoring old segment seq={seqnum}")
+
+            # Always ACK the next expected seq
+            self._send_ack(acknum=self._expected_seqnum, window=self._receive_window)
             return True
 
         if ack:
@@ -230,9 +251,15 @@ class BTCPServerSocket(BTCPSocket):
         logger.debug("Ignored segment received by server in ESTABLISHED")
         return False
 
-    def _update_receiver_window(self):
-        current_queued = self._recvbuf.qsize()
-        self._receive_window = max(1, self._window - current_queued)
+
+    def _deliver_data(self, data):
+        try:
+            self._recvbuf.put_nowait(data)
+            logger.debug(f"Delivered {len(data)} bytes to recv buffer")
+        except queue.Full:
+            logger.warning("Receive buffer full so dropping data")
+
+
 
     def lossy_layer_tick(self):
         """Called by the lossy layer whenever no segment has arrived for
