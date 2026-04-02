@@ -400,7 +400,6 @@ class BTCPClientSocket(BTCPSocket):
             # Store for possible retransmission + record send time
             self._unacked[self._next_seqnum] = (segment, time.monotonic_ns())
 
-            logger.info("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAaa")
             logger.info(f"Sent data seq={self._next_seqnum} (in-flight now {(self._next_seqnum - self._send_base) % 65536 + 1})")
             self._next_seqnum = (self._next_seqnum + 1) % 65536
 
