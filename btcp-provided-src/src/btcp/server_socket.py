@@ -49,7 +49,7 @@ class BTCPServerSocket(BTCPSocket):
         """
 
         logger.debug("__init__() called.")
-        self._expected_seqnum = None
+        self._expected_seqnum = 0
         self._reorder_buffer = {}
         super().__init__(window, timeout, isn)
         self._lossy_layer = LossyLayer(self, SERVER_IP, SERVER_PORT, CLIENT_IP, CLIENT_PORT)
@@ -60,7 +60,7 @@ class BTCPServerSocket(BTCPSocket):
         # size negotiation should solve.
         # For this rudimentary implementation, we simply hope receive manages
         # to be faster than send.
-        self._recvbuf = queue.Queue(maxsize=5000)
+        self._recvbuf = queue.Queue(maxsize=1000)
         logger.info("Socket initialized with recvbuf size 1000")
 
         self._remote_isn = 0
@@ -211,51 +211,50 @@ class BTCPServerSocket(BTCPSocket):
     def _established_segment_received(self, result):
         """Helper method handling received segment in ESTABLISHED state"""
         seqnum, acknum, syn, ack, fin, window, length, data = result
+
         if fin:
             logger.info("Received FIN from client")
             self._state = BTCPStates.CLOSING
             self._send_fin_ack()
             return True
-                
-        if length > 0:
-            if seqnum == self._expected_seqnum:
-                self._deliver_data(data)
-
-                self._expected_seqnum = (self._expected_seqnum + 1) % 65536
-
-                #  Check buffered packets
-                while self._expected_seqnum in self._reorder_buffer:
-                    buffered_data = self._reorder_buffer.pop(self._expected_seqnum)
-                    self._deliver_data(buffered_data)
-                    self._expected_seqnum = (self._expected_seqnum + 1) % 65536
-
-            elif (seqnum - self._expected_seqnum) % 65536 < 32768:
-                # buffer it
-                if seqnum not in self._reorder_buffer:
-                    self._reorder_buffer[seqnum] = data
-                    logger.debug(f"Buffered out-of-order segment seq={seqnum}")
-                else:
-                    logger.debug(f"Duplicate buffered segment seq={seqnum}")
-
-            else:
-                # Old / duplicate packet should be ignored
-                logger.debug(f"Ignoring old segment seq={seqnum}")
-
-            # Always ACK the next expected seq
-            self._receive_window = max(1, self._window - self._recvbuf.qsize()) # update receive window
+        
+        if length == 0:
+            self._update_receive_window()
             self._send_ack(acknum=self._expected_seqnum, window=self._receive_window)
             return True
+                            
+        if seqnum == self._expected_seqnum: # Just send normally
+            self._deliver_data(data)
+            self._expected_seqnum = (self._expected_seqnum + 1) % 65536
 
-        if ack:
-            pass
-        
-        logger.debug("Ignored segment received by server in ESTABLISHED")
-        return False
+            #  Check buffered packets
+            while self._expected_seqnum in self._reorder_buffer: # Sending buffered segments
+                buffered_data = self._reorder_buffer.pop(self._expected_seqnum)
+                self._deliver_data(buffered_data)
+                self._expected_seqnum = (self._expected_seqnum + 1) % 65536
+        elif (seqnum - self._expected_seqnum) % 65536 < self._window * 2:
+            # If we receive an out of order segment, we add it to _reorder_buffer
+            # when we then get the correct segment, we will just keep going through _reorder_buffer
+            #
+
+            # buffer it
+            if seqnum not in self._reorder_buffer:
+                self._reorder_buffer[seqnum] = data
+                logger.debug(f"Buffered out-of-order segment seq={seqnum}")
+            else:
+                logger.debug(f"Duplicate buffered segment seq={seqnum}")
+        else:
+            # Old / duplicate packet should be ignored
+            logger.debug(f"Ignoring old segment seq={seqnum}")
+
+        # Always ACK the next expected seq
+        self._update_receive_window() # update receive window
+        self._send_ack(acknum=self._expected_seqnum, window=self._receive_window)
 
 
     def _deliver_data(self, data):
         try:
-            self._recvbuf.put_nowait(data)
+            self._recvbuf.put_nowait(data[:PAYLOAD_SIZE])
             logger.debug(f"Delivered {len(data)} bytes to recv buffer")
         except queue.Full:
             logger.warning("Receive buffer full so dropping data")
@@ -284,9 +283,7 @@ class BTCPServerSocket(BTCPSocket):
         lossy_layer_segment_received or lossy_layer_tick.
         """
         logger.debug("lossy_layer_tick called")
-        # self._start_example_timer()
-        # self._expire_timers()
-        # raise_NotImplementedError("No implementation of lossy_layer_tick present. Read the comments & code of server_socket.py.")
+        self._update_receive_window()
 
 
     # The following two functions show you how you could implement a (fairly
@@ -314,6 +311,11 @@ class BTCPServerSocket(BTCPSocket):
     #         self._example_timer = None
     #     else:
     #         logger.debug("Example timer not yet elapsed.")
+
+    def _update_receive_window(self):
+        """Update advertised window based on free space in receive buffer"""
+        current_queued = self._recvbuf.qsize()
+        self._receive_window = max(1, self._window - current_queued)
 
     def _send_ack(self, acknum, window=None):
         """Helper function to send a pure ACK segment"""
@@ -504,6 +506,7 @@ class BTCPServerSocket(BTCPSocket):
         try:
             data.extend(self._recvbuf.get(block=True, timeout=self.timeout_secs))
             while True:
+                self._update_receive_window()
                 data.extend(self._recvbuf.get_nowait())
         except queue.Empty:
             pass

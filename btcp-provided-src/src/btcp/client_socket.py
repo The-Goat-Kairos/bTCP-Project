@@ -343,11 +343,12 @@ class BTCPClientSocket(BTCPSocket):
     def _check_retransmissions(self, current_time):
         timeout_ns = self.timeout_nanosecs
 
-        for seqnum, (segment, send_time) in list(self._unacked.items()):
+        for seqnum in list(self._unacked.keys()):
+            segment, send_time = self._unacked[seqnum]
             if current_time - send_time > timeout_ns:
-                logger.warning(f"Timeout on segment seq={seqnum} - retransmitting")
+                logger.warning(f"Timeout for seq={seqnum} - retransmitting")
                 self._lossy_layer.send_segment(segment)
-
+                # Update send time for new timeout
                 self._unacked[seqnum] = (segment, current_time)
 
     def _send_pending_data(self):
@@ -399,8 +400,8 @@ class BTCPClientSocket(BTCPSocket):
             # Store for possible retransmission + record send time
             self._unacked[self._next_seqnum] = (segment, time.monotonic_ns())
 
-            logger.info(f"Sent data segment seq={self._next_seqnum}, length={datalen}")
-
+            logger.info("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAaa")
+            logger.info(f"Sent data seq={self._next_seqnum} (in-flight now {(self._next_seqnum - self._send_base) % 65536 + 1})")
             self._next_seqnum = (self._next_seqnum + 1) % 65536
 
         if self._unacked:
