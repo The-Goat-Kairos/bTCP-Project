@@ -60,7 +60,7 @@ class BTCPServerSocket(BTCPSocket):
         # size negotiation should solve.
         # For this rudimentary implementation, we simply hope receive manages
         # to be faster than send.
-        self._recvbuf = queue.Queue(maxsize=1000)
+        self._recvbuf = queue.Queue(maxsize=5000)
         logger.info("Socket initialized with recvbuf size 1000")
 
         self._remote_isn = 0
@@ -242,12 +242,13 @@ class BTCPServerSocket(BTCPSocket):
                 logger.debug(f"Ignoring old segment seq={seqnum}")
 
             # Always ACK the next expected seq
+            self._receive_window = max(1, self._window - self._recvbuf.qsize()) # update receive window
             self._send_ack(acknum=self._expected_seqnum, window=self._receive_window)
             return True
 
         if ack:
             pass
-
+        
         logger.debug("Ignored segment received by server in ESTABLISHED")
         return False
 

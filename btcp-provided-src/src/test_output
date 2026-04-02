@@ -1,0 +1,561 @@
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17440 0 True False False 10 0 b''
+HELPPPPPPPPPPPP:  True False False
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17441 62187 False True False 10 0 b''
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17441 0 False False False 10 11 b'#1 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17442 0 False False False 10 11 b'#2 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17443 0 False False False 10 11 b'#3 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17444 0 False False False 10 11 b'#4 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17445 0 False False False 10 11 b'#5 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17446 0 False False False 10 11 b'#6 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17447 0 False False False 10 11 b'#7 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17448 0 False False False 10 11 b'#8 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17449 0 False False False 10 11 b'#9 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17450 0 False False False 10 12 b'#10 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17451 0 False False False 10 12 b'#11 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17452 0 False False False 10 12 b'#12 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17453 0 False False False 10 12 b'#13 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17454 0 False False False 10 12 b'#14 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17455 0 False False False 10 12 b'#15 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17456 0 False False False 10 12 b'#16 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17457 0 False False False 10 12 b'#17 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17458 0 False False False 10 12 b'#18 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17459 0 False False False 10 12 b'#19 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17460 0 False False False 10 12 b'#20 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17461 0 False False False 10 12 b'#21 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17462 0 False False False 10 12 b'#22 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17463 0 False False False 10 12 b'#23 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17464 0 False False False 10 12 b'#24 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17465 0 False False False 10 12 b'#25 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17466 0 False False False 10 12 b'#26 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17467 0 False False False 10 12 b'#27 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17468 0 False False False 10 12 b'#28 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17469 0 False False False 10 12 b'#29 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17470 0 False False False 10 12 b'#30 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17471 0 False False False 10 12 b'#31 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17472 0 False False False 10 12 b'#32 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17473 0 False False False 10 12 b'#33 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17474 0 False False False 10 12 b'#34 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17475 0 False False False 10 12 b'#35 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17476 0 False False False 10 12 b'#36 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17477 0 False False False 10 12 b'#37 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17478 0 False False False 10 12 b'#38 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17479 0 False False False 10 12 b'#39 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17480 0 False False False 10 12 b'#40 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17481 0 False False False 10 12 b'#41 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17482 0 False False False 10 12 b'#42 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17483 0 False False False 10 12 b'#43 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17484 0 False False False 10 12 b'#44 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17485 0 False False False 10 12 b'#45 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17486 0 False False False 10 12 b'#46 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17487 0 False False False 10 12 b'#47 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17488 0 False False False 10 12 b'#48 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17489 0 False False False 10 12 b'#49 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17490 0 False False False 10 12 b'#50 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17491 0 False False False 10 12 b'#51 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17492 0 False False False 10 12 b'#52 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17493 0 False False False 10 12 b'#53 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17494 0 False False False 10 12 b'#54 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17495 0 False False False 10 12 b'#55 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17496 0 False False False 10 12 b'#56 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17497 0 False False False 10 12 b'#57 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17498 0 False False False 10 12 b'#58 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17499 0 False False False 10 12 b'#59 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17500 0 False False False 10 12 b'#60 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17501 0 False False False 10 12 b'#61 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17502 0 False False False 10 12 b'#62 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17503 0 False False False 10 12 b'#63 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17504 0 False False False 10 12 b'#64 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17505 0 False False False 10 12 b'#65 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17506 0 False False False 10 12 b'#66 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17507 0 False False False 10 12 b'#67 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17508 0 False False False 10 12 b'#68 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17509 0 False False False 10 12 b'#69 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17510 0 False False False 10 12 b'#70 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17511 0 False False False 10 12 b'#71 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17512 0 False False False 10 12 b'#72 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17513 0 False False False 10 12 b'#73 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17514 0 False False False 10 12 b'#74 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17515 0 False False False 10 12 b'#75 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17516 0 False False False 10 12 b'#76 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17517 0 False False False 10 12 b'#77 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17518 0 False False False 10 12 b'#78 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17519 0 False False False 10 12 b'#79 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17520 0 False False False 10 12 b'#80 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17521 0 False False False 10 12 b'#81 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17522 0 False False False 10 12 b'#82 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17523 0 False False False 10 12 b'#83 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17524 0 False False False 10 12 b'#84 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17525 0 False False False 10 12 b'#85 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17526 0 False False False 10 12 b'#86 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17527 0 False False False 10 12 b'#87 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17528 0 False False False 10 12 b'#88 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17529 0 False False False 10 12 b'#89 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17530 0 False False False 10 12 b'#90 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17531 0 False False False 10 12 b'#91 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17532 0 False False False 10 12 b'#92 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17533 0 False False False 10 12 b'#93 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17534 0 False False False 10 12 b'#94 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17535 0 False False False 10 12 b'#95 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17536 0 False False False 10 12 b'#96 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17537 0 False False False 10 12 b'#97 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17538 0 False False False 10 12 b'#98 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17539 0 False False False 10 12 b'#99 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17540 0 False False False 10 13 b'#100 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17541 0 False False False 10 13 b'#101 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17542 0 False False False 10 13 b'#102 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17543 0 False False False 10 13 b'#103 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17544 0 False False False 10 13 b'#104 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17545 0 False False False 10 13 b'#105 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17546 0 False False False 10 13 b'#106 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17547 0 False False False 10 13 b'#107 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17548 0 False False False 10 13 b'#108 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17549 0 False False False 10 13 b'#109 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17550 0 False False False 10 13 b'#110 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17551 0 False False False 10 13 b'#111 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17552 0 False False False 10 13 b'#112 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17553 0 False False False 10 13 b'#113 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17554 0 False False False 10 13 b'#114 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17555 0 False False False 10 13 b'#115 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17556 0 False False False 10 13 b'#116 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17557 0 False False False 10 13 b'#117 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17558 0 False False False 10 13 b'#118 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17559 0 False False False 10 13 b'#119 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17560 0 False False False 10 13 b'#120 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17561 0 False False False 10 13 b'#121 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17562 0 False False False 10 13 b'#122 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17563 0 False False False 10 13 b'#123 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17564 0 False False False 10 13 b'#124 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17565 0 False False False 10 13 b'#125 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17566 0 False False False 10 13 b'#126 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17567 0 False False False 10 13 b'#127 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17568 0 False False False 10 13 b'#128 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17569 0 False False False 10 13 b'#129 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17570 0 False False False 10 13 b'#130 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17571 0 False False False 10 13 b'#131 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17572 0 False False False 10 13 b'#132 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17573 0 False False False 10 13 b'#133 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17574 0 False False False 10 13 b'#134 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17575 0 False False False 10 13 b'#135 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17576 0 False False False 10 13 b'#136 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17577 0 False False False 10 13 b'#137 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17578 0 False False False 10 13 b'#138 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17579 0 False False False 10 13 b'#139 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17580 0 False False False 10 13 b'#140 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17581 0 False False False 10 13 b'#141 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17582 0 False False False 10 13 b'#142 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17583 0 False False False 10 13 b'#143 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17584 0 False False False 10 13 b'#144 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17585 0 False False False 10 13 b'#145 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17586 0 False False False 10 13 b'#146 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17587 0 False False False 10 13 b'#147 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17588 0 False False False 10 13 b'#148 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17589 0 False False False 10 13 b'#149 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17590 0 False False False 10 13 b'#150 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17591 0 False False False 10 13 b'#151 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17592 0 False False False 10 13 b'#152 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17593 0 False False False 10 13 b'#153 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17594 0 False False False 10 13 b'#154 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17595 0 False False False 10 13 b'#155 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17596 0 False False False 10 13 b'#156 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17597 0 False False False 10 13 b'#157 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17598 0 False False False 10 13 b'#158 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17599 0 False False False 10 13 b'#159 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17600 0 False False False 10 13 b'#160 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17601 0 False False False 10 13 b'#161 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17602 0 False False False 10 13 b'#162 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17603 0 False False False 10 13 b'#163 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17604 0 False False False 10 13 b'#164 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17605 0 False False False 10 13 b'#165 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17606 0 False False False 10 13 b'#166 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17607 0 False False False 10 13 b'#167 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17608 0 False False False 10 13 b'#168 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17609 0 False False False 10 13 b'#169 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17610 0 False False False 10 13 b'#170 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17611 0 False False False 10 13 b'#171 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17612 0 False False False 10 13 b'#172 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17613 0 False False False 10 13 b'#173 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17614 0 False False False 10 13 b'#174 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17615 0 False False False 10 13 b'#175 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17616 0 False False False 10 13 b'#176 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17617 0 False False False 10 13 b'#177 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17618 0 False False False 10 13 b'#178 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17619 0 False False False 10 13 b'#179 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17620 0 False False False 10 13 b'#180 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17621 0 False False False 10 13 b'#181 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17622 0 False False False 10 13 b'#182 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17623 0 False False False 10 13 b'#183 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17624 0 False False False 10 13 b'#184 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17625 0 False False False 10 13 b'#185 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17626 0 False False False 10 13 b'#186 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17627 0 False False False 10 13 b'#187 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17628 0 False False False 10 13 b'#188 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17629 0 False False False 10 13 b'#189 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17630 0 False False False 10 13 b'#190 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17631 0 False False False 10 13 b'#191 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17632 0 False False False 10 13 b'#192 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17633 0 False False False 10 13 b'#193 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17634 0 False False False 10 13 b'#194 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17635 0 False False False 10 13 b'#195 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17636 0 False False False 10 13 b'#196 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17637 0 False False False 10 13 b'#197 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17638 0 False False False 10 13 b'#198 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17639 0 False False False 10 13 b'#199 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17640 0 False False False 10 13 b'#200 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17641 0 False False False 10 13 b'#201 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17642 0 False False False 10 13 b'#202 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17643 0 False False False 10 13 b'#203 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17644 0 False False False 10 13 b'#204 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17645 0 False False False 10 13 b'#205 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17646 0 False False False 10 13 b'#206 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17647 0 False False False 10 13 b'#207 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17648 0 False False False 10 13 b'#208 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17649 0 False False False 10 13 b'#209 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17650 0 False False False 10 13 b'#210 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17651 0 False False False 10 13 b'#211 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17652 0 False False False 10 13 b'#212 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17653 0 False False False 10 13 b'#213 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17654 0 False False False 10 13 b'#214 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17655 0 False False False 10 13 b'#215 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17656 0 False False False 10 13 b'#216 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17657 0 False False False 10 13 b'#217 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17658 0 False False False 10 13 b'#218 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17659 0 False False False 10 13 b'#219 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17660 0 False False False 10 13 b'#220 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17661 0 False False False 10 13 b'#221 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17662 0 False False False 10 13 b'#222 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17663 0 False False False 10 13 b'#223 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17664 0 False False False 10 13 b'#224 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17665 0 False False False 10 13 b'#225 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17666 0 False False False 10 13 b'#226 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17667 0 False False False 10 13 b'#227 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17668 0 False False False 10 13 b'#228 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17669 0 False False False 10 13 b'#229 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17670 0 False False False 10 13 b'#230 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17671 0 False False False 10 13 b'#231 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17672 0 False False False 10 13 b'#232 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17673 0 False False False 10 13 b'#233 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17674 0 False False False 10 13 b'#234 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17675 0 False False False 10 13 b'#235 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17676 0 False False False 10 13 b'#236 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17677 0 False False False 10 13 b'#237 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17678 0 False False False 10 13 b'#238 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17679 0 False False False 10 13 b'#239 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17680 0 False False False 10 13 b'#240 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17681 0 False False False 10 13 b'#241 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17682 0 False False False 10 13 b'#242 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17683 0 False False False 10 13 b'#243 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17684 0 False False False 10 13 b'#244 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17685 0 False False False 10 13 b'#245 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17686 0 False False False 10 13 b'#246 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17687 0 False False False 10 13 b'#247 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17688 0 False False False 10 13 b'#248 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17689 0 False False False 10 13 b'#249 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17690 0 False False False 10 13 b'#250 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17691 0 False False False 10 13 b'#251 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17692 0 False False False 10 13 b'#252 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17693 0 False False False 10 13 b'#253 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17694 0 False False False 10 13 b'#254 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17695 0 False False False 10 13 b'#255 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17696 0 False False False 10 13 b'#256 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17697 0 False False False 10 13 b'#257 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17698 0 False False False 10 13 b'#258 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17699 0 False False False 10 13 b'#259 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17700 0 False False False 10 13 b'#260 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17701 0 False False False 10 13 b'#261 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17702 0 False False False 10 13 b'#262 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17703 0 False False False 10 13 b'#263 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17704 0 False False False 10 13 b'#264 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17705 0 False False False 10 13 b'#265 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17706 0 False False False 10 13 b'#266 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17707 0 False False False 10 13 b'#267 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17707 0 False False False 10 13 b'#268 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17709 0 False False False 10 13 b'#269 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17709 0 False False False 10 13 b'#270 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17711 0 False False False 10 13 b'#271 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17712 0 False False False 10 13 b'#272 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17712 0 False False False 10 13 b'#273 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17714 0 False False False 10 13 b'#274 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17715 0 False False False 10 13 b'#276 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17714 0 False False False 10 13 b'#275 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17717 0 False False False 10 13 b'#277 of 65536'
+What the server is receiving in BTCPServerSocket._common_segment_processing:
+17717 0 False False False 10 13 b'#278 of 65536'

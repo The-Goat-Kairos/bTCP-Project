@@ -158,8 +158,8 @@ class BTCPClientSocket(BTCPSocket):
                 self._send_window = window
                 self._seqnum = expected_ack
                 self._send_base = expected_ack
+                self._next_seqnum = expected_ack     
 
-                self._next_seqnum = expected_ack                
                 self._send_ack(acknum=seqnum+1)
                 logger.info("Handshake completed?")
                 return True

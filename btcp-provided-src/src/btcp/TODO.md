@@ -1,11 +1,13 @@
 - Check for remaining tests that aren't passing
-  - [ ] Test 21 (Duplicates)
+  - [x] Test 21 (Duplicates)
   - [x] Test 22 (Corruption)
-  - [ ] Test 30 (Reordering)
+  - [x] Test 30 (Reordering)
+  - [x] Test 31 (Syns)
+  - [x] Test 32 (Fins)
+  - [ ] Test 40 (Large Text)
   - [ ] Test 60 (Drop every other)
   - [x] Test 70 (Drop every other ack)
   - [ ] Test 80 (Drop every other)
-  - [ ] Test 40
   - [ ] Test 61
   - [ ] Test 62
 - Try using client_app.py and server_app.py
