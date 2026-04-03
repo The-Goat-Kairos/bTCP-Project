@@ -263,19 +263,17 @@ class BTCPClientSocket(BTCPSocket):
         self._lossy_layer.send_segment(segment)
         logger.info("Sent FIN|ACK")
 
-    def _process_acknowledgement(self, acknum, window):
-        logger.debug(f"Processing ACK for acknum={acknum}, advertised window={window}")
-        self._send_window = window
+    def _process_acknowledgement(self, acknum, send_window):
+        logger.debug(f"Processing ACK for acknum={acknum}, advertised window={send_window}")
+        self._send_window = send_window
         
         to_remove = []
         for seq in self._unacked:
-            if (acknum - seq) % 65536 < 32768:
+            if (acknum - seq) % 65536 < 32768 and (acknum - seq) % 65536 != 0:
                 to_remove.append(seq)
         
         for seq in to_remove:
-            if seq in self._unacked:
-                del self._unacked[seq]
-                logger.debug(f"Segment seq={seq} acknowledged and removed from buffer")
+            self._unacked.pop(seq, None)
         
         if to_remove:
             self._send_base = acknum
@@ -484,11 +482,9 @@ class BTCPClientSocket(BTCPSocket):
 
             self._lossy_layer.send_segment(segment)
             logger.info(f"Sent SYN with seq={self._seqnum}")
-            print("What the client is sending in BTCPClientSocket.connect:")
-            print(self._common_segment_processing(segment))
             wait_start = time.monotonic()
             while self._state == BTCPStates.SYN_SENT:
-                if time.monotonic() - wait_start > 0.1: #TODO: per-retry timeout
+                if time.monotonic() - wait_start > 1.0: #TODO: per-retry timeout
                     break
                 time.sleep(0.05) # avoid busy waiting?
             
@@ -623,7 +619,7 @@ class BTCPClientSocket(BTCPSocket):
 
             wait_start = time.monotonic()
             while self._state == BTCPStates.FIN_SENT:
-                if time.monotonic() - wait_start > 0.1: #TODO: per-retry timeout
+                if time.monotonic() - wait_start > 1.0: #TODO: per-retry timeout
                     break
                 time.sleep(0.05)
 

@@ -25,7 +25,7 @@ import queue
 import sys
 import os
 
-DEFAULT_WINDOW = 10 
+DEFAULT_WINDOW = 10
 DEFAULT_TIMEOUT = 2 # seconds
 DEFAULT_LOGLEVEL = 'WARNING'
 
