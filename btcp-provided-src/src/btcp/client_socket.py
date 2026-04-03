@@ -158,8 +158,8 @@ class BTCPClientSocket(BTCPSocket):
                 self._send_window = window
                 self._seqnum = expected_ack
                 self._send_base = expected_ack
-                self._next_seqnum = expected_ack     
 
+                self._next_seqnum = expected_ack                
                 self._send_ack(acknum=seqnum+1)
                 logger.info("Handshake completed?")
                 return True
@@ -263,17 +263,19 @@ class BTCPClientSocket(BTCPSocket):
         self._lossy_layer.send_segment(segment)
         logger.info("Sent FIN|ACK")
 
-    def _process_acknowledgement(self, acknum, send_window):
-        logger.debug(f"Processing ACK for acknum={acknum}, advertised window={send_window}")
-        self._send_window = send_window
+    def _process_acknowledgement(self, acknum, window):
+        logger.debug(f"Processing ACK for acknum={acknum}, advertised window={window}")
+        self._send_window = window
         
         to_remove = []
         for seq in self._unacked:
-            if (acknum - seq) % 65536 < 32768 and (acknum - seq) % 65536 != 0:
+            if (acknum - seq) % 65536 < 32768:
                 to_remove.append(seq)
         
         for seq in to_remove:
-            self._unacked.pop(seq, None)
+            if seq in self._unacked:
+                del self._unacked[seq]
+                logger.debug(f"Segment seq={seq} acknowledged and removed from buffer")
         
         if to_remove:
             self._send_base = acknum
@@ -313,8 +315,6 @@ class BTCPClientSocket(BTCPSocket):
         # is available.
         # You should eventually for flow cotrol  be checking whether there's space in the window as well,
         # for reliable data transfer be storing the segments for retransmission somewhere.
-        logger.debug("lossy_layer_tick called")
-
         current_time = time.monotonic_ns()
 
         self._check_retransmissions(current_time)
@@ -341,12 +341,11 @@ class BTCPClientSocket(BTCPSocket):
     def _check_retransmissions(self, current_time):
         timeout_ns = self.timeout_nanosecs
 
-        for seqnum in list(self._unacked.keys()):
-            segment, send_time = self._unacked[seqnum]
+        for seqnum, (segment, send_time) in list(self._unacked.items()):
             if current_time - send_time > timeout_ns:
-                logger.warning(f"Timeout for seq={seqnum} - retransmitting")
+                logger.warning(f"Timeout on segment seq={seqnum} - retransmitting")
                 self._lossy_layer.send_segment(segment)
-                # Update send time for new timeout
+
                 self._unacked[seqnum] = (segment, current_time)
 
     def _send_pending_data(self):
@@ -398,7 +397,8 @@ class BTCPClientSocket(BTCPSocket):
             # Store for possible retransmission + record send time
             self._unacked[self._next_seqnum] = (segment, time.monotonic_ns())
 
-            logger.info(f"Sent data seq={self._next_seqnum} (in-flight now {(self._next_seqnum - self._send_base) % 65536 + 1})")
+            logger.info(f"Sent data segment seq={self._next_seqnum}, length={datalen}")
+
             self._next_seqnum = (self._next_seqnum + 1) % 65536
 
         if self._unacked:
@@ -482,9 +482,11 @@ class BTCPClientSocket(BTCPSocket):
 
             self._lossy_layer.send_segment(segment)
             logger.info(f"Sent SYN with seq={self._seqnum}")
+            print("What the client is sending in BTCPClientSocket.connect:")
+            print(self._common_segment_processing(segment))
             wait_start = time.monotonic()
             while self._state == BTCPStates.SYN_SENT:
-                if time.monotonic() - wait_start > 1.0: #TODO: per-retry timeout
+                if time.monotonic() - wait_start > 0.1: #TODO: per-retry timeout
                     break
                 time.sleep(0.05) # avoid busy waiting?
             
@@ -619,7 +621,7 @@ class BTCPClientSocket(BTCPSocket):
 
             wait_start = time.monotonic()
             while self._state == BTCPStates.FIN_SENT:
-                if time.monotonic() - wait_start > 1.0: #TODO: per-retry timeout
+                if time.monotonic() - wait_start > 0.1: #TODO: per-retry timeout
                     break
                 time.sleep(0.05)
 
