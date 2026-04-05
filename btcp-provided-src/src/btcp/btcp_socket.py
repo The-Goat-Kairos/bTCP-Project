@@ -2,7 +2,7 @@ import struct
 import logging
 import random
 from enum import IntEnum
-
+from btcp.constants import *
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +27,6 @@ class BTCPStates(IntEnum):
     ESTABLISHED = 4 # There's an obvious state that goes here. Give it a name.
     FIN_SENT    = 5
     CLOSING     = 6
-    LAST_ACK    = 7
 
 
 class BTCPSignals(IntEnum):
@@ -99,7 +98,6 @@ class BTCPSocket:
         s = ~s & 0xffff # one's complement
         return s
 
-
     @staticmethod
     def verify_checksum(segment):
         """Verify that the checksum indicates is an uncorrupted segment.
@@ -139,6 +137,24 @@ class BTCPSocket:
         return struct.pack("!HHBBHH",
                            seqnum, acknum, flag_byte, window, length, checksum)
 
+    def _common_segment_processing(self, segment):
+        if len(segment) != SEGMENT_SIZE:
+            logger.warning("Received Segment with incorrect size")
+            return None
+        
+        if not self.verify_checksum(segment):
+            logger.warning("Checksum verification failed")
+            return None
+
+        try:
+            seqnum, acknum, syn, ack, fin, window, length, _ = self.unpack_segment_header(segment[:HEADER_SIZE])
+        except Exception as e:
+            logger.error(f"Failed to unpack header: {e}")
+            return None
+
+        data = segment[HEADER_SIZE:HEADER_SIZE + length] if length > 0 else b''
+        
+        return seqnum, acknum, syn, ack, fin, window, length, data
 
     @staticmethod
     def unpack_segment_header(header):
@@ -157,6 +173,99 @@ class BTCPSocket:
         
         logger.debug("unpack_segment_header() done")
         return seqnum, acknum, syn, ack, fin, window, length, checksum
+    
+    def _send_ack(self, acknum, window=None):
+        """Helper function to send a pure ACK segment"""
+        if window is None:
+            window = self._window
+        # Build with wrong checksum
+        header = self.build_segment_header(
+            seqnum=self._seqnum, #acks without data do not advance seqnum
+            acknum=acknum,
+            syn_set=False,
+            ack_set=True,
+            fin_set=False,
+            window=window,
+            length=0,
+            checksum=0
+        )
+
+        # Compute checksum
+        segment = header + b'\x00' * PAYLOAD_SIZE
+        checksum = self.in_cksum(segment)
+
+        header = self.build_segment_header(
+            seqnum=self._seqnum,
+            acknum=acknum,
+            syn_set=False,
+            ack_set=True,
+            fin_set=False,
+            window=window,
+            length=0,
+            checksum=checksum
+        )
+        segment = header + b'\x00' * PAYLOAD_SIZE
+        self._lossy_layer.send_segment(segment)
+        logger.debug(f"Sent ACK with acknum={acknum}")
+
+    def _send_syn_ack(self, acknum):
+        """Helper function to send a SYN|ACK segment"""
+        header = self.build_segment_header(
+            seqnum=self._seqnum,
+            acknum=acknum,
+            syn_set=True,
+            ack_set=True,
+            fin_set=False,
+            window=self._receive_window,
+            length=0,
+            checksum=0
+        )
+
+        segment = header + b'\x00' * PAYLOAD_SIZE
+        checksum = self.in_cksum(segment)
+
+        header = self.build_segment_header(
+            seqnum=self._seqnum,
+            acknum=acknum,
+            syn_set=True,
+            ack_set=True,
+            fin_set=False,
+            window=self._receive_window,
+            length=0,
+            checksum=checksum
+        )
+
+        segment = header + b'\x00' * PAYLOAD_SIZE
+        self._lossy_layer.send_segment(segment)
+        logger.info(f"Sent SYN|ACK (seq={self._seqnum}, ack={acknum})")
+
+    def _send_fin_ack(self):
+        """Helper function to send a FIN|ACK segment"""
+        header = self.build_segment_header(
+            seqnum=self._seqnum,
+            acknum=0,
+            syn_set=False,
+            ack_set=True,
+            fin_set=True,
+            window=self._send_window,
+            length=0,
+            checksum=0
+        )
+        segment = header + b'\x00' * PAYLOAD_SIZE
+        checksum = self.in_cksum(segment)
+        header = self.build_segment_header(
+            seqnum=self._seqnum,
+            acknum=0,
+            syn_set=False,
+            ack_set=True,
+            fin_set=True,
+            window=self._send_window,
+            length=0,
+            checksum=checksum
+        )
+        segment = header + b'\x00' * PAYLOAD_SIZE
+        self._lossy_layer.send_segment(segment)
+        logger.info("Sent FIN|ACK")
 
 
 # Ignore the following code;  we use this to test the bTCP project.

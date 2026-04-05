@@ -143,27 +143,6 @@ class BTCPServerSocket(BTCPSocket):
 
         # self._expire_timers()
 
-    def _common_segment_processing(self, segment):
-        if len(segment) != SEGMENT_SIZE:
-            logger.warning("Received Segment with incorrect size")
-            return None
-        
-        if not self.verify_checksum(segment):
-            logger.warning("Checksum verification failed")
-            return None
-
-        try:
-            seqnum, acknum, syn, ack, fin, window, length, _ = self.unpack_segment_header(segment[:HEADER_SIZE])
-        except Exception as e:
-            logger.error(f"Failed to unpack header: {e}")
-            return None
-
-        data = segment[HEADER_SIZE:HEADER_SIZE + length] if length > 0 else b''
-        
-        print("What the server is receiving in BTCPServerSocket._common_segment_processing:")
-        print(seqnum, acknum, syn, ack, fin, window, length, data)
-        return seqnum, acknum, syn, ack, fin, window, length, data
-
     def _closed_segment_received(self, result):
         """Helper method handling received segment in CLOSED state"""
         seqnum, acknum, syn, ack, fin, window, length, data = result
@@ -530,40 +509,6 @@ class BTCPServerSocket(BTCPSocket):
         
         logger.info(f"Returning {len(data)} bytes")
         return bytes(data)
-        # raise_NotImplementedError("Only rudimentary implementation of recv present. Read the comments & code of server_socket.py, then remove the NotImplementedError.")
-
-        # Rudimentary example implementation:
-        # Empty the queue in a loop, reading into a larger bytearray object.
-        # Once empty, return the data as bytes.
-        # If no data is received for the given timeout, a disconnect is assumed.
-        # At that point recv returns no data and thereby signals disconnect
-        # to the server application.
-        # Proper handling should use the bTCP state machine to check that the
-        # client has disconnected when a timeout happens, and keep blocking
-        # until data has actually been received if it's still possible for
-        # data to appear.
-
-        # try:
-        #     # Wait until one segment becomes available in the buffer, or
-        #     # timeout signalling disconnect.
-        #     logger.info("Blocking get for first chunk of data.")
-        #     data.extend(self._recvbuf.get(block=True, timeout=self.timeout_secs)) 
-        #     logger.debug("First chunk of data retrieved.")
-        #     logger.debug("Looping over rest of queue.")
-        #     while True:
-        #         # Empty the rest of the buffer, until queue.Empty exception
-        #         # exits the loop. If that happens, data contains received
-        #         # segments so that will *not* signal disconnect.
-        #         data.extend(self._recvbuf.get_nowait())
-        #         logger.debug("Additional chunk of data retrieved.")
-        # except queue.Empty:
-        #     logger.debug("Queue emptied or timeout reached")
-        #     pass # (Not break: the exception itself has exited the loop)
-        # logger.info(data)
-        # if not data:
-        #     logger.info(f"No data received for {self.timeout_secs} seconds.")
-        #     logger.info("Returning empty bytes to caller, signalling disconnect.")
-        # return bytes(data)
 
 
     def close(self):
