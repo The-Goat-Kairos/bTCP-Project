@@ -274,8 +274,9 @@ class Socket(BTCPSocket):
 
     def _process_acknowledgement(self, acknum, window):
         logger.debug(f"Processing ACK for acknum={acknum}, advertised window={window}")
-        self._send_window = window
-        
+        if window > 0:
+            self._send_window = window
+
         to_remove = []
         for seq in self._unacked:
             if (acknum - seq) % 65536 < 32768:
@@ -297,7 +298,6 @@ class Socket(BTCPSocket):
             if in_flight >= self._send_window:
                 logger.debug(f"Send window full ({in_flight} / {self._send_window})")
                 break
-
 
             try:
                 chunk = self._sendbuf.get_nowait()
