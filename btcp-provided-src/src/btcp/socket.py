@@ -45,7 +45,8 @@ class Socket(BTCPSocket):
         # Remote ISN
         self._remote_isn = 0
 
-        self._lossy_layer = None
+        self._lossy_layer = LossyLayer(self, CLIENT_IP, CLIENT_PORT, SERVER_IP, SERVER_PORT) # Default to Client. Calling accept or connect should still works
+        self._lossy_layer.start_network_thread()
 
     def _setup_lossy_layer(self, local_ip, local_port, remote_ip, remote_port):     
         if self._lossy_layer is not None:
@@ -201,11 +202,14 @@ class Socket(BTCPSocket):
 
     def _handle_incoming_data(self, seqnum, data):
         """Helper method handling received segment in ESTABLISHED state"""     
+        delivered = False
+
         if seqnum == self._expected_seqnum:
             # Deliver data in order
             self._deliver_data(data)
             self._expected_seqnum = (self._expected_seqnum + 1) % 65536
-            
+            delivered = True
+
             # Check for buffered segments that are now in order
             while self._expected_seqnum in self._reorder_buffer:
                 buffered_data = self._reorder_buffer.pop(self._expected_seqnum)
@@ -213,7 +217,6 @@ class Socket(BTCPSocket):
                 self._expected_seqnum = (self._expected_seqnum + 1) % 65536
             
             # Send ACK for the received data
-            self._send_ack(acknum=self._expected_seqnum, window=self._receive_window)
             
         elif (seqnum - self._expected_seqnum) % 65536 < 32768:
             # Out-of-order but within window - buffer it
@@ -221,17 +224,48 @@ class Socket(BTCPSocket):
                 self._reorder_buffer[seqnum] = data
                 logger.debug(f"Buffered out-of-order segment seq={seqnum}")
                 # Send duplicate ACK for expected sequence number
-                self._send_ack(acknum=self._expected_seqnum, window=self._receive_window)
             else:
                 logger.debug(f"Duplicate buffered segment seq={seqnum}")
         else:
             # Old packet - ignore but send ACK anyway
             logger.debug(f"Ignoring old segment seq={seqnum}")
-            self._send_ack(acknum=self._expected_seqnum, window=self._receive_window)
         
-        return True
+        self._send_ack(acknum=self._expected_seqnum, window=self._receive_window)
+        return delivered
 
+    def _send_ack(self, acknum, window=None):
+        """Helper function to send a pure ACK segment"""
+        if window is None:
+            window = self._receive_window
+        # Build with wrong checksum
+        header = self.build_segment_header(
+            seqnum=self._seqnum, #acks without data do not advance seqnum
+            acknum=acknum,
+            syn_set=False,
+            ack_set=True,
+            fin_set=False,
+            window=window,
+            length=0,
+            checksum=0
+        )
 
+        # Compute checksum
+        segment = header + b'\x00' * PAYLOAD_SIZE
+        checksum = self.in_cksum(segment)
+
+        header = self.build_segment_header(
+            seqnum=self._seqnum,
+            acknum=acknum,
+            syn_set=False,
+            ack_set=True,
+            fin_set=False,
+            window=window,
+            length=0,
+            checksum=checksum
+        )
+        segment = header + b'\x00' * PAYLOAD_SIZE
+        self._lossy_layer.send_segment(segment)
+        logger.debug(f"Sent ACK with acknum={acknum}")
 
     # =========================================================================================== #
     # CLIENT 

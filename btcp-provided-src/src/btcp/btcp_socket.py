@@ -173,40 +173,6 @@ class BTCPSocket:
         
         logger.debug("unpack_segment_header() done")
         return seqnum, acknum, syn, ack, fin, window, length, checksum
-    
-    def _send_ack(self, acknum, window=None):
-        """Helper function to send a pure ACK segment"""
-        if window is None:
-            window = self._window
-        # Build with wrong checksum
-        header = self.build_segment_header(
-            seqnum=self._seqnum, #acks without data do not advance seqnum
-            acknum=acknum,
-            syn_set=False,
-            ack_set=True,
-            fin_set=False,
-            window=window,
-            length=0,
-            checksum=0
-        )
-
-        # Compute checksum
-        segment = header + b'\x00' * PAYLOAD_SIZE
-        checksum = self.in_cksum(segment)
-
-        header = self.build_segment_header(
-            seqnum=self._seqnum,
-            acknum=acknum,
-            syn_set=False,
-            ack_set=True,
-            fin_set=False,
-            window=window,
-            length=0,
-            checksum=checksum
-        )
-        segment = header + b'\x00' * PAYLOAD_SIZE
-        self._lossy_layer.send_segment(segment)
-        logger.debug(f"Sent ACK with acknum={acknum}")
 
     def _send_syn_ack(self, acknum):
         """Helper function to send a SYN|ACK segment"""

@@ -254,7 +254,15 @@ class BTCPClientSocket(BTCPSocket):
         # except queue.Empty:
         #     logger.info("No (more) data was available for sending right now.")
 
+    def _check_retransmissions(self, current_time):
+        timeout_ns = self.timeout_nanosecs
 
+        for seqnum, (segment, send_time) in list(self._unacked.items()):
+            if current_time - send_time > timeout_ns:
+                logger.warning(f"Timeout on segment seq={seqnum} - retransmitting")
+                self._lossy_layer.send_segment(segment)
+
+                self._unacked[seqnum] = (segment, current_time)
 
     def _send_pending_data(self):
         while not self._sendbuf.empty():
