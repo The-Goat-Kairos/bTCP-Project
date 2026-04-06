@@ -23,7 +23,7 @@ class Socket(BTCPSocket):
     # COMMON 
     # =========================================================================================== #
 
-    def __init__(self, window, timeout, isn):
+    def __init__(self, window, timeout, isn=None):
         logger.debug("__init__() called.")
 
         super().__init__(window, timeout, isn)
@@ -82,7 +82,8 @@ class Socket(BTCPSocket):
             case _:
                 logger.warning(f"Ignoring segment in state {self._state.name}")
         
-        self._check_retransmissions()
+        current_time = time.monotonic_ns()
+        self._check_retransmissions(current_time=current_time)
 
     def lossy_layer_tick(self):
         current_time = time.monotonic_ns()
