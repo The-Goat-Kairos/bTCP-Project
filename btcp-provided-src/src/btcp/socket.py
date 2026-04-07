@@ -5,6 +5,7 @@ from btcp.constants import *
 import queue
 import time
 import logging
+import threading
 import random
 
 logger = logging.getLogger(__name__)
@@ -45,8 +46,39 @@ class Socket(BTCPSocket):
         # Remote ISN
         self._remote_isn = 0
 
+        # Prevent _send_pending_data from running concurrently
+        self._send_lock = threading.Lock()
+
+        # For blocking in connect/accept/shutdown
+        self._state_changed = threading.Event()
+
         self._lossy_layer = LossyLayer(self, CLIENT_IP, CLIENT_PORT, SERVER_IP, SERVER_PORT) # Default to Client. Calling accept or connect should still works
         self._lossy_layer.start_network_thread()
+
+    def _reset_connection_state(self):
+        """Reset all per-connection state for reconnect."""
+        while not self._sendbuf.empty(): # Empty send buffer
+            try:
+                self._sendbuf.get_nowait()
+            except queue.Empty:
+                break
+        while not self._recvbuf.empty(): # Empty receive buffer
+            try:
+                self._recvbuf.get_nowait()
+            except queue.Empty:
+                break
+
+        # Just set everything to default and generate new sequence number
+        self._seqnum = random.randint(0, 65535)
+        self._send_base = self._seqnum
+        self._next_seqnum = self._seqnum
+        self._send_window = self._window
+        self._unacked = {}
+
+        self._expected_seqnum = None
+        self._reorder_buffer = {}
+        self._receive_window = self._window
+        self._remote_isn = 0
 
     def _setup_lossy_layer(self, local_ip, local_port, remote_ip, remote_port):     
         if self._lossy_layer is not None:
@@ -61,11 +93,6 @@ class Socket(BTCPSocket):
         result = self._common_segment_processing(segment)
         if result is None:
             return
-        
-        seqnum, acknum, syn, ack, fin, window, length, data = result
-
-        if ack and window > 0:
-            self._send_window = window
 
         match self._state:
             case BTCPStates.CLOSED:
@@ -83,12 +110,13 @@ class Socket(BTCPSocket):
             case _:
                 logger.warning(f"Ignoring segment in state {self._state.name}")
         
+        self._state_changed.set()
         current_time = time.monotonic_ns()
-        self._check_retransmissions(current_time=current_time)
+        self._check_retransmissions(current_time)
 
     def lossy_layer_tick(self):
         current_time = time.monotonic_ns()
-        self._check_retransmissions(current_time=current_time)
+        self._check_retransmissions(current_time)
         self._send_pending_data()
 
     # =========================================================================================== #
@@ -105,8 +133,8 @@ class Socket(BTCPSocket):
             logger.info(f"Received SYN from client (seq={seqnum})")
             self._state = BTCPStates.SYN_RCVD
             self._remote_isn = seqnum                           # store client's ISN (x)
-            self._expected_seqnum = (seqnum + 1) % 65536
-            self._send_syn_ack(acknum=seqnum + 1)     # ack = x + 1
+            self._expected_seqnum =   (seqnum + 1) % 65536
+            self._send_syn_ack(acknum=(seqnum + 1) % 65536)     # ack = x + 1
             logger.debug("Closed segment received and sent SYN|ACK")
         else:
             logger.debug("Ignored non-SYN segment in CLOSED state")
@@ -129,7 +157,7 @@ class Socket(BTCPSocket):
                 self._next_seqnum = expected_ack     
                 self._expected_seqnum = (seqnum + 1) % 65536
 
-                self._send_ack(acknum=seqnum + 1)
+                self._send_ack(acknum=((seqnum + 1) % 65536))
                 logger.info("Handshake completed?")
                 return True
 
@@ -155,20 +183,19 @@ class Socket(BTCPSocket):
     def _established_segment_received(self, result):    
         seqnum, acknum, syn, ack, fin, window, length, data = result
 
-        if window > 0:
-            self._send_window = window
-
         if fin:
-            logger.info("Received FIN from server so closing")
-            self._state = BTCPStates.CLOSING
+            logger.info("Received FIN from client so server sends FIN|ACK and closing connection")
+            self._state = BTCPStates.FIN_SENT
             self._send_fin_ack()
             return True
         
         if length > 0:
-            self._handle_incoming_data(seqnum, data)
-            return
+            if window > 0:
+                self._send_window = window
+            self._handle_incoming_data(seqnum, data, length)
+            return True
         
-        if ack:
+        if ack and self._state is not BTCPStates.FIN_SENT:
             self._process_acknowledgement(acknum, window)
             return True
         
@@ -180,11 +207,15 @@ class Socket(BTCPSocket):
         seqnum, acknum, syn, ack, fin, window, length, data = result
 
         if fin and ack:
-            if acknum == (self._seqnum + 1) % 65536:
-                logger.info("Received FIN|ACK from server so connection closing")
-                self._state = BTCPStates.CLOSING
-                self._send_ack(acknum=acknum)
-                return True
+            logger.info("Received FIN|ACK from server so sending an ACK and closign connection")
+            self._state = BTCPStates.CLOSING
+            self._send_ack(acknum=(seqnum + 1) % 65536)
+            return True
+        if ack:
+            # Plain ACK for our FIN – still waiting for the FIN from the other side
+            logger.debug("Received ACK for FIN in FIN_SENT, waiting for FIN")
+            self._process_acknowledgement(acknum, window)
+            return False
         logger.debug("Ignored unexpected segment in FIN_SENT")
         return False
 
@@ -199,14 +230,19 @@ class Socket(BTCPSocket):
         logger.debug("Ignored segment received by server in CLOSING")
         return False
 
+    # =========================================================================================== #
+    # Data Handling
+    # =========================================================================================== #
 
-    def _handle_incoming_data(self, seqnum, data):
+
+    def _handle_incoming_data(self, seqnum, data, length):
         """Helper method handling received segment in ESTABLISHED state"""     
+        payload = data[:length]
         delivered = False
 
         if seqnum == self._expected_seqnum:
             # Deliver data in order
-            self._deliver_data(data)
+            self._deliver_data(payload)
             self._expected_seqnum = (self._expected_seqnum + 1) % 65536
             delivered = True
 
@@ -216,12 +252,10 @@ class Socket(BTCPSocket):
                 self._deliver_data(buffered_data)
                 self._expected_seqnum = (self._expected_seqnum + 1) % 65536
             
-            # Send ACK for the received data
-            
-        elif (seqnum - self._expected_seqnum) % 65536 < 32768:
+        elif _seq_ahead(seqnum, self._expected_seqnum):
             # Out-of-order but within window - buffer it
             if seqnum not in self._reorder_buffer:
-                self._reorder_buffer[seqnum] = data
+                self._reorder_buffer[seqnum] = payload
                 logger.debug(f"Buffered out-of-order segment seq={seqnum}")
                 # Send duplicate ACK for expected sequence number
             else:
@@ -232,6 +266,13 @@ class Socket(BTCPSocket):
         
         self._send_ack(acknum=self._expected_seqnum, window=self._receive_window)
         return delivered
+    
+    def _deliver_data(self, data):
+        try:
+            self._recvbuf.put_nowait(data)
+            logger.debug(f"Delivered {len(data)} bytes to recv buffer")
+        except queue.Full:
+            logger.warning("Receive buffer full so dropping data")
 
     def _send_ack(self, acknum, window=None):
         """Helper function to send a pure ACK segment"""
@@ -277,11 +318,7 @@ class Socket(BTCPSocket):
         if window > 0:
             self._send_window = window
 
-        to_remove = []
-        for seq in self._unacked:
-            if (acknum - seq) % 65536 < 32768:
-                to_remove.append(seq)
-        
+        to_remove = [seq for seq in self._unacked if _seq_acked(seq, acknum)]
         for seq in to_remove:
             if seq in self._unacked:
                 del self._unacked[seq]
@@ -293,81 +330,84 @@ class Socket(BTCPSocket):
         self._send_pending_data()
 
     def _send_pending_data(self):
-        while not self._sendbuf.empty():
-            in_flight = (self._next_seqnum - self._send_base) % 65536
-            if in_flight >= self._send_window:
-                logger.debug(f"Send window full ({in_flight} / {self._send_window})")
-                break
+        if self._state is not BTCPStates.ESTABLISHED:
+            return
+        
+        if not self._send_lock.acquire(blocking=False):
+            return  # another call is already running
+        try:
+            while not self._sendbuf.empty():
+                in_flight = len(self._unacked)
+                if in_flight >= self._send_window:
+                    logger.debug(f"Send window full ({in_flight} / {self._send_window})")
+                    break
 
-            try:
-                chunk = self._sendbuf.get_nowait()
-            except queue.Empty:
-                break
+                try:
+                    chunk = self._sendbuf.get_nowait()
+                except queue.Empty:
+                    break
 
-            datalen = len(chunk)
-            if datalen < PAYLOAD_SIZE:
-                chunk = chunk + b'\x00' * (PAYLOAD_SIZE - datalen)
-            
-            header = self.build_segment_header(
-                seqnum=self._next_seqnum,
-                acknum=0,
-                syn_set=False,
-                ack_set=False,
-                fin_set=False,
-                window=self._send_window,
-                length=datalen,
-                checksum=0
-            )
+                datalen = len(chunk)
+                if datalen < PAYLOAD_SIZE:
+                    chunk = chunk + b'\x00' * (PAYLOAD_SIZE - datalen)
+                
+                header = self.build_segment_header(
+                    seqnum=self._next_seqnum,
+                    acknum=0,
+                    syn_set=False,
+                    ack_set=False,
+                    fin_set=False,
+                    window=self._send_window,
+                    length=datalen,
+                    checksum=0
+                )
 
-            segment = header + chunk
-            checksum = self.in_cksum(segment)
+                segment = header + chunk
+                checksum = self.in_cksum(segment)
 
-            # Rebuild header with correct checksum
-            header = self.build_segment_header(
-                seqnum=self._next_seqnum,
-                acknum=0,
-                syn_set=False,
-                ack_set=False,
-                fin_set=False,
-                window=self._send_window,
-                length=datalen,
-                checksum=checksum
-            )
-            segment = header + chunk
+                # Rebuild header with correct checksum
+                header = self.build_segment_header(
+                    seqnum=self._next_seqnum,
+                    acknum=0,
+                    syn_set=False,
+                    ack_set=False,
+                    fin_set=False,
+                    window=self._send_window,
+                    length=datalen,
+                    checksum=checksum
+                )
+                segment = header + chunk
 
-            self._lossy_layer.send_segment(segment)
+                self._lossy_layer.send_segment(segment)
 
-            # Store for possible retransmission + record send time
-            self._unacked[self._next_seqnum] = (segment, time.monotonic_ns())
+                # Store for possible retransmission + record send time
+                self._unacked[self._next_seqnum] = (segment, time.monotonic_ns())
 
-            logger.info(f"Sent data segment seq={self._next_seqnum}, length={datalen}")
+                logger.info(f"Sent data segment seq={self._next_seqnum}, length={datalen}")
 
-            self._next_seqnum = (self._next_seqnum + 1) % 65536
-
+                self._next_seqnum = (self._next_seqnum + 1) % 65536
+        finally:
+            self._send_lock.release()
         if self._unacked:
             logger.debug(f"{len(self._unacked)} segments still unacknowledged")
 
     def _check_retransmissions(self, current_time):
+        if self._state not in (BTCPStates.ESTABLISHED, BTCPStates.FIN_SENT):
+            return
+        
         timeout_ns = self.timeout_nanosecs
 
         for seqnum, (segment, send_time) in list(self._unacked.items()):
             if current_time - send_time > timeout_ns:
+                if self._state == BTCPStates.FIN_SENT:
+                    logger.debug(f"Skipping retransmit of data seq={seqnum} in FIN_SENT")
+                    continue
+
                 logger.warning(f"Timeout on segment seq={seqnum} - retransmitting")
                 self._lossy_layer.send_segment(segment)
 
                 self._unacked[seqnum] = (segment, current_time)
-    # =========================================================================================== #
-    # SERVER 
-    # =========================================================================================== #
 
-    def _deliver_data(self, data):
-        try:
-            self._recvbuf.put_nowait(data)
-            logger.debug(f"Delivered {len(data)} bytes to recv buffer")
-        except queue.Full:
-            logger.warning("Receive buffer full so dropping data")
-
- 
  
     # =========================================================================================== #
     # =========================================================================================== #
@@ -399,21 +439,20 @@ class Socket(BTCPSocket):
         We do not think you will need more advanced thread synchronization in
         this project.
         """
-
         if self._state != BTCPStates.CLOSED:
             logger.error("Accept can only be called from the closed state")
             return
 
-
+        self._reset_connection_state()
         self._setup_lossy_layer(CLIENT_IP, CLIENT_PORT, SERVER_IP, SERVER_PORT)
 
         logger.debug("connect called")
         max_retries = 5
         retry_count = 0
-        start_time = time.monotonic()
+        overall_deadline = time.monotonic() + self._timeout_secs * 2
 
         while retry_count < max_retries:
-            if time.monotonic() - start_time > self.timeout_secs:
+            if time.monotonic() > overall_deadline:
                 logger.error("Connection timeout reached")
                 self._state = BTCPStates.CLOSED
                 return
@@ -446,13 +485,12 @@ class Socket(BTCPSocket):
 
             self._lossy_layer.send_segment(segment)
             logger.info(f"Sent SYN with seq={self._seqnum}")
-            print("What the client is sending in BTCPClientSocket.connect:")
-            print(self._common_segment_processing(segment))
-            wait_start = time.monotonic()
-            while self._state == BTCPStates.SYN_SENT:
-                if time.monotonic() - wait_start > 0.1: #TODO: per-retry timeout
-                    break
-                time.sleep(0.05) # avoid busy waiting?
+
+            deadline = time.monotonic() + self._timeout_secs
+            while self._state == BTCPStates.SYN_SENT and time.monotonic() < deadline:
+                if self._state_changed.wait(timeout=0.1):
+                    self._state_changed.clear()
+                
             
             logger.info("Current state in client is %s", self._state.name)
             if self._state == BTCPStates.ESTABLISHED:
@@ -489,18 +527,20 @@ class Socket(BTCPSocket):
         if self._state != BTCPStates.CLOSED:
             logger.error("Accept can only be called from the closed state")
             return
+        self._reset_connection_state()
 
         self._setup_lossy_layer(SERVER_IP, SERVER_PORT, CLIENT_IP, CLIENT_PORT)
 
         logger.debug("accept called")
 
-        start_time = time.monotonic()
+        deadline = time.monotonic() + self._timeout_secs * 10
 
         while self._state != BTCPStates.ESTABLISHED:
-            if time.monotonic() - start_time > self.timeout_secs:
+            if time.monotonic() > deadline:
                 logger.error("Accept timeout reached")
                 raise TimeoutError()
-            time.sleep(0.05)
+            if self._state_changed.wait(timeout=0.1):
+                self._state_changed.clear()
 
         logger.info("Connection accepted")
     
@@ -535,9 +575,9 @@ class Socket(BTCPSocket):
         can carry. If a chunk is smaller we do *not* pad it here, that gets
         done later.
         """
-        if self._lossy_layer == None:
+        if self._lossy_layer is None:
             logger.error("You haven't called connect first. Terminating.")
-            return
+            return 0
         
         logger.debug("send called")
 
@@ -558,6 +598,7 @@ class Socket(BTCPSocket):
                 sent_bytes += chunk_len
         except queue.Full:
             logger.info("Send queue full.")
+
         logger.info("Managed to queue %i out of %i bytes for transmission",
                     sent_bytes,
                     datalen)
@@ -600,111 +641,123 @@ class Socket(BTCPSocket):
         *empty* response signals a disconnect.
         """
 
-        logger.debug("recv called")
-        
-        # Check if connection is still established or closing
-        if self._state == BTCPStates.CLOSED:
-            logger.info("Connection already closed, returning empty bytes")
-            return b''
-        
-        data = bytearray()
-        logger.info("Retrieving data from receive queue")
-        
-        try:
-            # Wait for at least one packet
-            chunk = self._recvbuf.get(block=True, timeout=self.timeout_secs)
-            data.extend(chunk)
-            
-            # Get any remaining packets without blocking
-            while True:
-                try:
-                    data.extend(self._recvbuf.get_nowait())
-                except queue.Empty:
-                    break
-                    
-        except queue.Empty:
-            # Timeout - check if connection is still alive
-            if self._state == BTCPStates.CLOSING or self._state == BTCPStates.CLOSED:
-                logger.info("Connection terminated, returning empty bytes")
+        logger.debug("recv called, state=%s", self._state.name)
+
+        while True:
+            if not self._recvbuf.empty():
+                data = bytearray()
+                while True:
+                    try:
+                        data.extend(self._recvbuf.get_nowait())
+                    except queue.Empty:
+                        break
+                return bytes(data)
+
+            if self._state in (BTCPStates.CLOSED, BTCPStates.CLOSING):
+                # One last drain
+                data = bytearray()
+                while True:
+                    try:
+                        data.extend(self._recvbuf.get_nowait())
+                    except queue.Empty:
+                        break
+                if data:
+                    return bytes(data)
                 return b''
-            else:
-                # Still waiting for data
-                logger.debug("No data available yet")
-                return self.recv()  # Recursively wait
-        
-        logger.info(f"Returning {len(data)} bytes")
-        return bytes(data)
+
+            try:
+                chunk = self._recvbuf.get(block=True, timeout=0.1)
+                data = bytearray(chunk)
+                while True:
+                    try:
+                        data.extend(self._recvbuf.get_nowait())
+                    except queue.Empty:
+                        break
+                return bytes(data)
+            except queue.Empty:
+                continue
+
+    def _wait_for_unacked_drain(self, deadline):
+        """Block until all unacked segments are acknowledged or deadline passes."""
+        while self._unacked:
+            if time.monotonic() > deadline:
+                logger.warning("Drain timeout – some data may be lost")
+                return False
+            time.sleep(0.02)
+        return True
     
     def shutdown(self):
-        """Perform the bTCP three-way finish to shutdown the connection.
+        logger.info("shutdown called, state=%s", self._state.name)
 
-        shutdown should *block* (i.e. not return) until the connection has been
-        successfully terminated or the disconnect attempt is aborted. You will
-        need some coordination between the application thread and the network
-        thread for this, because the fin/ack from the server will be received
-        in the network thread.
-        """
-        logger.info("Starting bTCP connection termination (client-initiated shutdown)")
-        
         if self._state != BTCPStates.ESTABLISHED:
-            logger.warning(f"Shutdown called in state {self._state.name} so we're ignoring it")
+            logger.warning(f"shutdown called in {self._state.name}, ignoring")
             return
-        
-        max_retries = 5
+
+        # Wait for send buffer to drain
+        drain_deadline = time.monotonic() + self.timeout_secs * 3
+        while not self._sendbuf.empty() and time.monotonic() < drain_deadline:
+            time.sleep(0.02)
+        self._wait_for_unacked_drain(drain_deadline)
+
+        max_retries = 10
         retry_count = 0
-        start_time = time.monotonic()
+        overall_deadline = time.monotonic() + self.timeout_secs * 2
 
         while retry_count < max_retries:
-            if time.monotonic() - start_time > self.timeout_secs:
-                logger.warning("Shutdown timeout reached - assuming server side is closed")
+            if time.monotonic() > overall_deadline:
+                logger.warning("Shutdown timeout – forcing CLOSED")
                 self._state = BTCPStates.CLOSED
                 return
 
-            # Step 1: Send FIN
+            # Transition to FIN_SENT *before* sending so that
+            # _send_pending_data / _check_retransmissions won't fire new data.
             self._state = BTCPStates.FIN_SENT
+
             header = self.build_segment_header(
-                seqnum=self._seqnum,
+                seqnum=self._seqnum, 
                 acknum=0,
-                syn_set=False,
-                ack_set=False,
+                syn_set=False, 
+                ack_set=False, 
                 fin_set=True,
-                window=self._send_window,
-                length=0,
-                checksum=0
+                window=self._send_window, 
+                length=0, 
+                checksum=0,
             )
             segment = header + b'\x00' * PAYLOAD_SIZE
             checksum = self.in_cksum(segment)
-
             header = self.build_segment_header(
-                seqnum=self._seqnum,
+                seqnum=self._seqnum, 
                 acknum=0,
-                syn_set=False,
-                ack_set=False,
+                syn_set=False, 
+                ack_set=False, 
                 fin_set=True,
-                window=self._send_window,
-                length=0,
-                checksum=checksum
+                window=self._send_window, 
+                length=0, 
+                checksum=checksum,
             )
             segment = header + b'\x00' * PAYLOAD_SIZE
-
             self._lossy_layer.send_segment(segment)
-            logger.info(f"Sent FIN (seq={self._seqnum}), attempt {retry_count+1}")
+            logger.info(f"Sent FIN seq={self._seqnum}, attempt {retry_count + 1}")
 
-            wait_start = time.monotonic()
-            while self._state == BTCPStates.FIN_SENT:
-                if time.monotonic() - wait_start > 0.1: #TODO: per-retry timeout
-                    break
-                time.sleep(0.05)
+            deadline = time.monotonic() + self.timeout_secs
+            while self._state == BTCPStates.FIN_SENT and time.monotonic() < deadline:
+                self._state_changed.clear()
+                self._state_changed.wait(timeout=0.1)
 
-            if self._state == BTCPStates.CLOSING or self._state == BTCPStates.CLOSED:
-                # We received FIN|ACK and sent final ACK (or timed out gracefully)
-                logger.info("Connection termination completed")
+            if self._state in (BTCPStates.CLOSING, BTCPStates.CLOSED):
+                close_deadline = time.monotonic() + self.timeout_secs
+                while self._state == BTCPStates.CLOSING and time.monotonic() < close_deadline:
+                    self._state_changed.clear()
+                    self._state_changed.wait(timeout=0.1)
+                logger.info("Connection terminated")
+
+                self._state = BTCPStates.CLOSED
                 return
-            
+
             retry_count += 1
             logger.warning(f"FIN attempt {retry_count} failed, retrying")
 
-        logger.warning("Max retries exceeded during shutdown so we're assuming server is closed")
+        logger.warning("Max retries exceeded during shutdown")
         self._state = BTCPStates.CLOSED
 
     def close(self):
@@ -734,3 +787,18 @@ class Socket(BTCPSocket):
         """Destructor. Do not modify."""
         logger.debug("__del__ called")
         self.close()
+
+    # =========================================================================================== #
+    # HELPERS 
+    # =========================================================================================== #
+
+def _seq_ahead(seqnum, expected):
+    """Return True if seqnum is strictly ahead of expected (within half the space)."""
+    diff = (seqnum - expected) % 65536
+    return 0 < diff < 32768
+
+
+def _seq_acked(seq, acknum):
+    """Return True if seq is covered by a cumulative ACK of acknum."""
+    diff = (acknum - seq) % 65536
+    return 0 < diff < 32768

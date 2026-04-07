@@ -812,7 +812,7 @@ class SynHygiene(btcp.lossy_layer.BasicHandler):
 
 
 class FinHygiene(btcp.lossy_layer.BasicHandler):
-    """Handler that crashes when a segment is sent after a FIN that is not a ratransmission
+    """Handler that crashes when a segment is sent after a FIN that is not a retransmission
     or a FIN."""
     def __init__(self, old_handler):
         super().__init__(old_handler)

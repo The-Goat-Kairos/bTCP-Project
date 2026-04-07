@@ -205,6 +205,34 @@ class BTCPSocket:
         self._lossy_layer.send_segment(segment)
         logger.info(f"Sent SYN|ACK (seq={self._seqnum}, ack={acknum})")
 
+    def _send_fin(self, acknum):
+        """Helper to send a pure FIN segment (active close)."""
+        header = self.build_segment_header(
+            seqnum=self._seqnum,
+            acknum=acknum,
+            syn_set=False,
+            ack_set=False,
+            fin_set=True,
+            window=self._send_window,
+            length=0,
+            checksum=0
+        )
+        segment = header + b'\x00' * PAYLOAD_SIZE
+        checksum = self.in_cksum(segment)
+        header = self.build_segment_header(
+            seqnum=self._seqnum,
+            acknum=acknum,
+            syn_set=False,
+            ack_set=False,
+            fin_set=True,
+            window=self._send_window,
+            length=0,
+            checksum=checksum
+        )
+        segment = header + b'\x00' * PAYLOAD_SIZE
+        self._lossy_layer.send_segment(segment)
+        logger.info(f"Sent FIN seq={self._seqnum} (passive closer)")
+
     def _send_fin_ack(self):
         """Helper function to send a FIN|ACK segment"""
         header = self.build_segment_header(

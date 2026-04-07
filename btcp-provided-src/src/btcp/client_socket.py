@@ -40,7 +40,7 @@ class BTCPClientSocket(BTCPSocket):
 
     def __init__(self, window, timeout, isn=None):
         """Constructor for the bTCP client socket. Allocates local resources
-        and starts an instance of the Lossy Layer.
+        and starts an instanc`e of the Lossy Layer.
         """
         logger.debug("__init__ called")
         super().__init__(window, timeout, isn)
