@@ -45,7 +45,7 @@ class Socket(BTCPSocket):
 
         # Remote ISN
         self._remote_isn = 0
-
+    
         # Prevent _send_pending_data from running concurrently
         self._send_lock = threading.Lock()
 
@@ -185,7 +185,7 @@ class Socket(BTCPSocket):
 
         if fin:
             logger.info("Received FIN from client so server sends FIN|ACK and closing connection")
-            self._state = BTCPStates.FIN_SENT
+            self._state = BTCPStates.CLOSING
             self._send_fin_ack()
             return True
         
@@ -210,6 +210,7 @@ class Socket(BTCPSocket):
             logger.info("Received FIN|ACK from server so sending an ACK and closign connection")
             self._state = BTCPStates.CLOSING
             self._send_ack(acknum=(seqnum + 1) % 65536)
+            self._state = BTCPStates.CLOSED
             return True
         if ack:
             # Plain ACK for our FIN – still waiting for the FIN from the other side

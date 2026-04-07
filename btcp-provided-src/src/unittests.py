@@ -18,8 +18,7 @@ import time
 import sys
 import os
 
-# Import the merged Socket class
-from btcp.socket import Socket          # <-- CHANGE THIS if your file name is different
+from btcp.socket import Socket
 
 import btcp.btcp_socket
 import btcp.lossy_layer
@@ -42,7 +41,7 @@ class T(unittest.TestCase):
 
     @staticmethod
     def _segment_length_client(barrier):
-        c = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)   # merged socket
+        c = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
         with c._lossy_layer.effect(SegmentLenChecker):
             c.connect()
             c.send(b"Hello world!")
@@ -51,7 +50,7 @@ class T(unittest.TestCase):
 
     @staticmethod
     def _segment_length_server(barrier):
-        s = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)   # merged socket
+        s = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
         s.accept()
         while s.recv() != b'':
             pass
