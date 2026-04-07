@@ -1,19 +1,13 @@
 #!/usr/bin/env python3
 #
-# Some unit tests to help you hone aspects your BTCP implementation.
+# Some unit tests to help you hone aspects of your bTCP implementation.
 #
 # The unit tests are roughly ordered by difficulty indicated by a number 00-99.
 # Getting all tests working up to difficulty 50 is considered decent.
-#
-# We'll be adding more test during the course of the semester, so please keep an eye
-# on Brightspace.
 
 import unittest
 import multiprocessing
 import logging
-import btcp.server_socket
-import btcp.client_socket
-import btcp.btcp_socket
 import queue
 import contextlib
 import threading
@@ -21,26 +15,34 @@ import select
 import string
 import struct
 import time
-import queue
 import sys
 import os
 
+# Import the merged Socket class
+from btcp.socket import Socket          # <-- CHANGE THIS if your file name is different
+
+import btcp.btcp_socket
+import btcp.lossy_layer
+from btcp.constants import *
+
 DEFAULT_WINDOW = 10
-DEFAULT_TIMEOUT = 2 # seconds
+DEFAULT_TIMEOUT = 2  # seconds
 DEFAULT_LOGLEVEL = 'WARNING'
 
-logger = logging.getLogger(os.path.basename(__file__)) # we don't want __main__
+logger = logging.getLogger(os.path.basename(__file__))
+
 
 class T(unittest.TestCase):
-    def test_00_segment_length(self): 
-        # this tests checks that segments have the correct size - 1018 bytes
+
+    def test_00_segment_length(self):
         barrier = multiprocessing.Barrier(2)
-        run_in_separate_processes((barrier,), 
-                                  T._segment_length_client, 
+        run_in_separate_processes((barrier,),
+                                  T._segment_length_client,
                                   T._segment_length_server)
+
     @staticmethod
     def _segment_length_client(barrier):
-        c = btcp.client_socket.BTCPClientSocket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
+        c = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)   # merged socket
         with c._lossy_layer.effect(SegmentLenChecker):
             c.connect()
             c.send(b"Hello world!")
@@ -49,62 +51,63 @@ class T(unittest.TestCase):
 
     @staticmethod
     def _segment_length_server(barrier):
-        s = btcp.server_socket.BTCPServerSocket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
+        s = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)   # merged socket
         s.accept()
         while s.recv() != b'':
             pass
         barrier.wait()
 
 
-    def test_10_connect(self): 
+    def test_10_connect(self):
         barrier = multiprocessing.Barrier(2)
-        run_in_separate_processes((barrier,), 
-                                  T._connect_client, 
+        run_in_separate_processes((barrier,),
+                                  T._connect_client,
                                   T._connect_server)
+
     @staticmethod
     def _connect_client(barrier):
-        c = btcp.client_socket.BTCPClientSocket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
+        c = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
         c.connect()
         barrier.wait()
 
     @staticmethod
     def _connect_server(barrier):
-        s = btcp.server_socket.BTCPServerSocket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
+        s = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
         s.accept()
         barrier.wait()
 
-    def test_11_hello_world(self): 
+
+    def test_11_hello_world(self):
         barrier = multiprocessing.Barrier(2)
-        run_in_separate_processes((barrier,), 
-                                  T._hello_world_client, 
+        run_in_separate_processes((barrier,),
+                                  T._hello_world_client,
                                   T._hello_world_server)
+
     @staticmethod
     def _hello_world_client(barrier):
-        c = btcp.client_socket.BTCPClientSocket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
+        c = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
         c.connect()
         c.send(b"Hello world!")
         barrier.wait()
 
     @staticmethod
     def _hello_world_server(barrier):
-        s = btcp.server_socket.BTCPServerSocket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
+        s = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
         s.accept()
         rh = RecvHelper(s)
         rh.expect(b"Hello world!")
         barrier.wait()
 
 
-    def test_15_old_segments(self): 
-        # this tests replays some messages from a previous connection,
-        # which should only cause you trouble when you don't use random initial sequence numbers
+    def test_15_old_segments(self):
         barrier = multiprocessing.Barrier(2)
-        run_in_separate_processes((barrier,), 
-                                  T._old_segments_client, 
+        run_in_separate_processes((barrier,),
+                                  T._old_segments_client,
                                   T._old_segments_server, timeout=10)
-   
+
     @staticmethod
     def _old_segments_client(barrier):
-        c = btcp.client_socket.BTCPClientSocket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
+        c = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
         c.connect()
         with c._lossy_layer.effect(Record) as recorder:
             c.send(b"Hello world!")
@@ -112,9 +115,9 @@ class T(unittest.TestCase):
             c.close()
             barrier.wait()
 
-        c = btcp.client_socket.BTCPClientSocket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
+        c = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
         c.connect()
-        barrier.wait() # wait for connection to start replaying recording
+        barrier.wait()
         with c._lossy_layer.effect(Replay, recorder) as replay:
             c.send(b"Hello world, again!")
             replay.wait()
@@ -122,7 +125,7 @@ class T(unittest.TestCase):
 
     @staticmethod
     def _old_segments_server(barrier):
-        s = btcp.server_socket.BTCPServerSocket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
+        s = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
         s.accept()
         rh = RecvHelper(s)
         rh.expect(b"Hello world!")
@@ -130,39 +133,41 @@ class T(unittest.TestCase):
         s.close()
         barrier.wait()
         barrier.reset()
-        s = btcp.server_socket.BTCPServerSocket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
+
+        s = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
         rh = RecvHelper(s)
         s.accept()
         barrier.wait()
         rh.expect_closed(b"Hello world, again!")
 
 
-    def test_20_also_close(self): 
-        run_in_separate_processes((), 
-                                  T._also_close_client, 
+    def test_20_also_close(self):
+        run_in_separate_processes((),
+                                  T._also_close_client,
                                   T._also_close_server)
-        # no barrier here -shutdown should make sure its final acks are sent
 
     @staticmethod
     def _also_close_client():
-        c = btcp.client_socket.BTCPClientSocket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
+        c = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
         c.connect()
         c.send(b"Hello world!")
         c.shutdown()
 
     @staticmethod
     def _also_close_server():
-        s = btcp.server_socket.BTCPServerSocket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
+        s = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
         s.accept()
         RecvHelper(s).expect_closed(b"Hello world!")
 
-    def test_21_duplication(self): 
-        run_in_separate_processes((), 
-                                  T._duplication_client, 
+
+    def test_21_duplication(self):
+        run_in_separate_processes((),
+                                  T._duplication_client,
                                   T._duplication_server, timeout=5)
+
     @staticmethod
     def _duplication_client():
-        c = btcp.client_socket.BTCPClientSocket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
+        c = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
         with c._lossy_layer.effect(Duplication):
             c.connect()
             c.send(b"Hello world!")
@@ -170,17 +175,20 @@ class T(unittest.TestCase):
 
     @staticmethod
     def _duplication_server():
-        s = btcp.server_socket.BTCPServerSocket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
+        s = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
         s.accept()
         RecvHelper(s).expect_closed(b"Hello world!")
 
-    def test_21_duplication_no_shutdown(self): 
-        run_in_separate_processes((multiprocessing.Barrier(2),), 
-                                  T._duplication_client_no_shutdown, 
+
+    def test_21_duplication_no_shutdown(self):
+        barrier = multiprocessing.Barrier(2)
+        run_in_separate_processes((barrier,),
+                                  T._duplication_client_no_shutdown,
                                   T._duplication_server_no_shutdown, timeout=5)
+
     @staticmethod
     def _duplication_client_no_shutdown(barrier):
-        c = btcp.client_socket.BTCPClientSocket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
+        c = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
         with c._lossy_layer.effect(Duplication):
             c.connect()
             c.send(b"Hello world 1!")
@@ -189,63 +197,63 @@ class T(unittest.TestCase):
 
     @staticmethod
     def _duplication_server_no_shutdown(barrier):
-        s = btcp.server_socket.BTCPServerSocket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
+        s = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
         s.accept()
         RecvHelper(s).expect(b"Hello world 1!")
         RecvHelper(s).expect(b"Hello world 2!")
         barrier.wait()
 
-    def test_22_corrupted_duplicates(self): 
-        # Sends a duplicate with bitflips first 
-        #  - should be caught by properly implemented checksums
-        # It's easier to deal with this than normal bitflips, as retransmission is not required.
-        run_in_separate_processes((), 
-                                  T._corrupted_duplicates_client, 
+
+    def test_22_corrupted_duplicates(self):
+        run_in_separate_processes((),
+                                  T._corrupted_duplicates_client,
                                   T._corrupted_duplicates_server, timeout=5)
+
     @staticmethod
     def _corrupted_duplicates_client():
-        c = btcp.client_socket.BTCPClientSocket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
+        c = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
         c.connect()
         c.send(b"Hello world!")
         c.shutdown()
 
     @staticmethod
     def _corrupted_duplicates_server():
-        s = btcp.server_socket.BTCPServerSocket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
+        s = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
         with s._lossy_layer.effect(Duplication, first_effect=CorruptReceivedData):
             s.accept()
             RecvHelper(s).expect_closed(b"Hello world!")
 
-    def test_22_corrupted_duplicates_no_shutdown(self): 
-        # Sends a duplicate with bitflips first 
-        #  - should be caught by properly implemented checksums
-        # It's easier to deal with this than normal bitflips, as retransmission is not required.
-        run_in_separate_processes((multiprocessing.Barrier(2),), 
-                                  T._corrupted_duplicates_client_no_shutdown, 
+
+    def test_22_corrupted_duplicates_no_shutdown(self):
+        barrier = multiprocessing.Barrier(2)
+        run_in_separate_processes((barrier,),
+                                  T._corrupted_duplicates_client_no_shutdown,
                                   T._corrupted_duplicates_server_no_shutdown, timeout=5)
+
     @staticmethod
     def _corrupted_duplicates_client_no_shutdown(barrier):
-        c = btcp.client_socket.BTCPClientSocket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
+        c = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
         c.connect()
         c.send(b"Hello world!")
         barrier.wait()
 
     @staticmethod
     def _corrupted_duplicates_server_no_shutdown(barrier):
-        s = btcp.server_socket.BTCPServerSocket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
+        s = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
         with s._lossy_layer.effect(Duplication, first_effect=CorruptReceivedData):
             s.accept()
             RecvHelper(s).expect(b"Hello world!")
             barrier.wait()
-    
-    def test_30_reordering(self): 
-        # If this one fails, you might not be keeping track of sequence numbers correctly
-        run_in_separate_processes((), 
-                                  T._reordering_client, 
+
+
+    def test_30_reordering(self):
+        run_in_separate_processes((),
+                                  T._reordering_client,
                                   T._reordering_server, timeout=5)
+
     @staticmethod
     def _reordering_client():
-        c = btcp.client_socket.BTCPClientSocket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
+        c = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
         c.connect()
         c.send(b"Hello world 1!")
         c.send(b"Hello world 2!")
@@ -253,7 +261,7 @@ class T(unittest.TestCase):
 
     @staticmethod
     def _reordering_server():
-        s = btcp.server_socket.BTCPServerSocket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
+        s = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
         s.accept()
         rh = RecvHelper(s)
         with s._lossy_layer.effect(ReorderReceived):
@@ -261,14 +269,16 @@ class T(unittest.TestCase):
             rh.expect(b"Hello world 2!")
         rh.expect_closed()
 
-    def test_30_reordering_no_shutdown(self): 
-        # If this one fails, you might not be keeping track of sequence numbers correctly
-        run_in_separate_processes((multiprocessing.Barrier(2),), 
-                                  T._reordering_client_no_shutdown, 
+
+    def test_30_reordering_no_shutdown(self):
+        barrier = multiprocessing.Barrier(2)
+        run_in_separate_processes((barrier,),
+                                  T._reordering_client_no_shutdown,
                                   T._reordering_server_no_shutdown, timeout=5)
+
     @staticmethod
     def _reordering_client_no_shutdown(barrier):
-        c = btcp.client_socket.BTCPClientSocket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
+        c = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
         c.connect()
         c.send(b"Hello world 1!")
         c.send(b"Hello world 2!")
@@ -276,7 +286,7 @@ class T(unittest.TestCase):
 
     @staticmethod
     def _reordering_server_no_shutdown(barrier):
-        s = btcp.server_socket.BTCPServerSocket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
+        s = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
         s.accept()
         rh = RecvHelper(s)
         with s._lossy_layer.effect(ReorderReceived):
@@ -285,15 +295,15 @@ class T(unittest.TestCase):
         barrier.wait()
 
 
-    def test_31_syns(self): 
-        # crashes when the first segment from each peer does not have a SYN,
-        # or when later segments do
-        run_in_separate_processes((multiprocessing.Barrier(2),), 
-                                              T._syns_client, 
-                                              T._syns_server, timeout=5)
+    def test_31_syns(self):
+        barrier = multiprocessing.Barrier(2)
+        run_in_separate_processes((barrier,),
+                                  T._syns_client,
+                                  T._syns_server, timeout=5)
+
     @staticmethod
     def _syns_client(barrier):
-        c = btcp.client_socket.BTCPClientSocket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
+        c = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
         with c._lossy_layer.effect(SynHygiene):
             c.connect()
             c.send(b"Hello world!")
@@ -301,7 +311,7 @@ class T(unittest.TestCase):
 
     @staticmethod
     def _syns_server(barrier):
-        s = btcp.server_socket.BTCPServerSocket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
+        s = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
         with s._lossy_layer.effect(SynHygiene):
             s.accept()
             rh = RecvHelper(s)
@@ -309,14 +319,14 @@ class T(unittest.TestCase):
             barrier.wait()
 
 
-    def test_32_fins(self): 
-        # crashes when peers send no FINs, or when new data is sent after a FIN
-        run_in_separate_processes((), 
-                                  T._fins_client, 
+    def test_32_fins(self):
+        run_in_separate_processes((),
+                                  T._fins_client,
                                   T._fins_server, timeout=5)
+
     @staticmethod
     def _fins_client():
-        c = btcp.client_socket.BTCPClientSocket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
+        c = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
         with c._lossy_layer.effect(FinHygiene) as fh:
             c.connect()
             c.send(b"Hello world!")
@@ -327,7 +337,7 @@ class T(unittest.TestCase):
 
     @staticmethod
     def _fins_server():
-        s = btcp.server_socket.BTCPServerSocket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
+        s = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
         with s._lossy_layer.effect(FinHygiene) as fh:
             s.accept()
             rh = RecvHelper(s)
@@ -335,26 +345,28 @@ class T(unittest.TestCase):
             if not fh._had_fin:
                 raise AssertionError("Server did not send FIN")
 
+
     def test_40_large(self):
-        run_in_separate_processes((multiprocessing.Barrier(2),), 
-                                  T._large_client, 
+        barrier = multiprocessing.Barrier(2)
+        run_in_separate_processes((barrier,),
+                                  T._large_client,
                                   T._large_server, timeout=60)
 
     @staticmethod
     def _large_client(barrier):
-        c = btcp.client_socket.BTCPClientSocket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
+        c = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
         c.connect()
         sh = SendHelper(c)
         N = 0x10000
         for i in range(N):
-            if i%1000==0:
+            if i % 1000 == 0:
                 print(f"Send {i} out of {N}")
             sh.send(f"#{i+1} of {N}".encode('ascii'))
         barrier.wait()
 
     @staticmethod
     def _large_server(barrier):
-        s = btcp.server_socket.BTCPServerSocket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
+        s = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
         s.accept()
         rh = RecvHelper(s)
         N = 0x10000
@@ -362,16 +374,15 @@ class T(unittest.TestCase):
             rh.expect(f"#{i+1} of {N}".encode('ascii'))
         barrier.wait()
 
-    def test_60_drop_every_other(self): 
-        # In this test the server only gets retransmissions from the client after
-        # a connection has been established
-        run_in_separate_processes((), 
-                                  T._drop_every_other_client, 
+
+    def test_60_drop_every_other(self):
+        run_in_separate_processes((),
+                                  T._drop_every_other_client,
                                   T._drop_every_other_server, timeout=10)
 
     @staticmethod
     def _drop_every_other_client():
-        c = btcp.client_socket.BTCPClientSocket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
+        c = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
         c.connect()
         for i in range(2):
             c.send(f"Hello world {i}!".encode())
@@ -379,14 +390,14 @@ class T(unittest.TestCase):
 
     @staticmethod
     def _drop_every_other_server():
-        s = btcp.server_socket.BTCPServerSocket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
+        s = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
         rh = RecvHelper(s)
         s.accept()
         with s._lossy_layer.effect(DropSecondReceived):
             for i in range(2):
                 rh.expect(f"Hello world {i}!".encode())
         rh.expect_closed()
-    
+
     def test_60_drop_every_other_no_shutdown(self): 
         # In this test the server only gets retransmissions from the client after
         # a connection has been established
@@ -396,7 +407,7 @@ class T(unittest.TestCase):
 
     @staticmethod
     def _drop_every_other_client_no_shutdown(barrier):
-        c = btcp.client_socket.BTCPClientSocket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
+        c = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
         c.connect()
         for i in range(2):
             c.send(f"Hello world {i}!".encode())
@@ -404,7 +415,7 @@ class T(unittest.TestCase):
 
     @staticmethod
     def _drop_every_other_server_no_shutdown(barrier):
-        s = btcp.server_socket.BTCPServerSocket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
+        s = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
         rh = RecvHelper(s)
         s.accept()
         with s._lossy_layer.effect(DropSecondReceived):
@@ -412,27 +423,28 @@ class T(unittest.TestCase):
                 rh.expect(f"Hello world {i}!".encode())
         barrier.wait()
 
-    def test_61_window_in_flight(self): 
-        # Crashes when more segments with data are in-flight than the window size permits.
+
+    def test_61_window_in_flight(self):
         run_in_separate_processes((),
-                                  T._window_in_flight_client, 
+                                  T._window_in_flight_client,
                                   T._window_in_flight_server, timeout=5)
+
     @staticmethod
     def _window_in_flight_client():
-        c = btcp.client_socket.BTCPClientSocket(100, DEFAULT_TIMEOUT)
+        c = Socket(100, DEFAULT_TIMEOUT)
         c.connect()
         with c._lossy_layer.effect(InFlightWindow, 3) as wh:
             c.send(b"1"*1008)
             c.send(b"2"*1008)
             c.send(b"3"*1008)
             c.send(b"4"*1008)
-            time.sleep(.5) # give the window a chance to overflow
+            time.sleep(.5)
             wh.release_segments()
             c.shutdown()
 
     @staticmethod
     def _window_in_flight_server():
-        s = btcp.server_socket.BTCPServerSocket(3, DEFAULT_TIMEOUT)
+        s = Socket(3, DEFAULT_TIMEOUT)
         s.accept()
         rh = RecvHelper(s)
         rh.expect(b"1"*1008)
@@ -447,7 +459,7 @@ class T(unittest.TestCase):
                                   T._window_in_flight_server_no_shutdown, timeout=5)
     @staticmethod
     def _window_in_flight_client_no_shutdown(barrier):
-        c = btcp.client_socket.BTCPClientSocket(100, DEFAULT_TIMEOUT)
+        c = Socket(100, DEFAULT_TIMEOUT)
         c.connect()
         with c._lossy_layer.effect(InFlightWindow, 3) as wh:
             c.send(b"1"*1008)
@@ -460,7 +472,7 @@ class T(unittest.TestCase):
 
     @staticmethod
     def _window_in_flight_server_no_shutdown(barrier):
-        s = btcp.server_socket.BTCPServerSocket(3, DEFAULT_TIMEOUT)
+        s = Socket(3, DEFAULT_TIMEOUT)
         s.accept()
         rh = RecvHelper(s)
         rh.expect(b"1"*1008)
@@ -469,32 +481,31 @@ class T(unittest.TestCase):
         rh.expect(b"4"*1008)
         barrier.wait()
 
-    def test_62_window(self): 
-        # The client sends segments, but the server's application layer is slow to 'recv' them.
-        # Crashes if the client does not respect the server's window size.
-        # Requires dynamic window updating based on the 'window' value sent back in the server's ACKs.
-        run_in_separate_processes((multiprocessing.Barrier(2),), 
-                                  T._window_client, 
+    def test_62_window(self):
+        barrier = multiprocessing.Barrier(2)
+        run_in_separate_processes((barrier,),
+                                  T._window_client,
                                   T._window_server, timeout=5)
+
     @staticmethod
     def _window_client(barrier):
-        c = btcp.client_socket.BTCPClientSocket(100, DEFAULT_TIMEOUT)
+        c = Socket(100, DEFAULT_TIMEOUT)
         c.connect()
         with c._lossy_layer.effect(Window, 3) as wh:
             c.send(b"1"*1008)
             c.send(b"2"*1008)
             c.send(b"3"*1008)
             c.send(b"4"*1008)
-            time.sleep(.5) # give the window a chance to overflow
+            time.sleep(.5)
             barrier.wait()
             wh.stop_checking()
             c.shutdown()
 
     @staticmethod
     def _window_server(barrier):
-        s = btcp.server_socket.BTCPServerSocket(3, DEFAULT_TIMEOUT)
+        s = Socket(3, DEFAULT_TIMEOUT)
         s.accept()
-        barrier.wait() # wait with recv-ing
+        barrier.wait()
         rh = RecvHelper(s)
         rh.expect(b"1"*1008)
         rh.expect(b"2"*1008)
@@ -502,16 +513,15 @@ class T(unittest.TestCase):
         rh.expect_closed(b"4"*1008)
 
 
-    def test_70_drop_every_other_ack(self): 
-        # In this test the client only gets retransmissions from the server
-        # once a connection has been established
-        run_in_separate_processes((), 
-                                  T._drop_every_other_ack_client, 
+
+    def test_70_drop_every_other_ack(self):
+        run_in_separate_processes((),
+                                  T._drop_every_other_ack_client,
                                   T._drop_every_other_ack_server, timeout=10)
 
     @staticmethod
     def _drop_every_other_ack_client():
-        c = btcp.client_socket.BTCPClientSocket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
+        c = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
         c.connect()
         with c._lossy_layer.effect(DropSecondReceived):
             for i in range(3):
@@ -520,7 +530,7 @@ class T(unittest.TestCase):
 
     @staticmethod
     def _drop_every_other_ack_server():
-        s = btcp.server_socket.BTCPServerSocket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
+        s = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
         rh = RecvHelper(s)
         s.accept()
         for i in range(3):
@@ -536,7 +546,7 @@ class T(unittest.TestCase):
 
     @staticmethod
     def _drop_every_other_ack_client_no_shutdown(barrier):
-        c = btcp.client_socket.BTCPClientSocket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
+        c = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
         c.connect()
         with c._lossy_layer.effect(DropSecondReceived):
             for i in range(3):
@@ -545,23 +555,21 @@ class T(unittest.TestCase):
 
     @staticmethod
     def _drop_every_other_ack_server_no_shutdown(barrier):
-        s = btcp.server_socket.BTCPServerSocket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
+        s = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
         rh = RecvHelper(s)
         s.accept()
         for i in range(3):
             rh.expect(f"Hello world {i}!".encode())
         barrier.wait()
 
-    def test_80_drop_every_other_always(self): 
-        # In this test both client and server only get retransmissions,
-        # including the segments from the handshakes.
-        run_in_separate_processes((), 
-                                  T._drop_every_other_always_client, 
+    def test_80_drop_every_other_always(self):
+        run_in_separate_processes((),
+                                  T._drop_every_other_always_client,
                                   T._drop_every_other_always_server, timeout=10)
 
     @staticmethod
     def _drop_every_other_always_client():
-        c = btcp.client_socket.BTCPClientSocket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
+        c = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
         with c._lossy_layer.effect(DropSecondReceived):
             c.connect()
             for i in range(3):
@@ -570,7 +578,7 @@ class T(unittest.TestCase):
 
     @staticmethod
     def _drop_every_other_always_server():
-        s = btcp.server_socket.BTCPServerSocket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
+        s = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
         rh = RecvHelper(s)
         with s._lossy_layer.effect(DropSecondReceived):
             s.accept()
@@ -587,7 +595,7 @@ class T(unittest.TestCase):
 
     @staticmethod
     def _drop_every_other_always_client_no_shutdown(barrier):
-        c = btcp.client_socket.BTCPClientSocket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
+        c = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
         with c._lossy_layer.effect(DropSecondReceived):
             c.connect()
             for i in range(3):
@@ -596,7 +604,7 @@ class T(unittest.TestCase):
 
     @staticmethod
     def _drop_every_other_always_server_no_shutdown(barrier):
-        s = btcp.server_socket.BTCPServerSocket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
+        s = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
         rh = RecvHelper(s)
         with s._lossy_layer.effect(DropSecondReceived):
             s.accept()
@@ -604,13 +612,14 @@ class T(unittest.TestCase):
                 rh.expect(f"Hello world {i}!".encode())
             barrier.wait()
 
-    def test_90_reconnect(self): 
-        run_in_separate_processes((), 
-                                  T._reconnect_client, 
+    def test_90_reconnect(self):
+        run_in_separate_processes((),
+                                  T._reconnect_client,
                                   T._reconnect_server, timeout=10)
+
     @staticmethod
     def _reconnect_client():
-        c = btcp.client_socket.BTCPClientSocket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
+        c = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
         c.connect()
         c.send(b"Hello world!")
         c.shutdown()
@@ -620,14 +629,12 @@ class T(unittest.TestCase):
 
     @staticmethod
     def _reconnect_server():
-        s = btcp.server_socket.BTCPServerSocket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
+        s = Socket(DEFAULT_WINDOW, DEFAULT_TIMEOUT)
         rh = RecvHelper(s)
         s.accept()
         rh.expect_closed(b"Hello world!")
         s.accept()
         rh.expect_closed(b"Hello world, again!")
-
-
 
 
 class Identity(btcp.lossy_layer.BasicHandler):
@@ -805,7 +812,7 @@ class SynHygiene(btcp.lossy_layer.BasicHandler):
 
 
 class FinHygiene(btcp.lossy_layer.BasicHandler):
-    """Handler that crashes when a segment is sent after a FIN that is not a ratransmission
+    """Handler that crashes when a segment is sent after a FIN that is not a retransmission
     or a FIN."""
     def __init__(self, old_handler):
         super().__init__(old_handler)
