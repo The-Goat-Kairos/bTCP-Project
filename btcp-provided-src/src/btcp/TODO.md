@@ -3,12 +3,10 @@
   - [x] Test 22 (Corruption)
   - [x] Test 30 (Reordering)
   - [x] Test 31 (Syns)
-  - [x] Test 32 (Fins)
-  - [ ] Test 40 (A lot of small messages)
-  - [ ] Test 60 (Drop every other)
+  - [ ] Test 32 (Fins)
+  - [x] Test 40 (A lot of small messages)
+  - [x] Test 60 (Drop every other)
   - [x] Test 70 (Drop every other ack)
   - [ ] Test 80 (Drop every other)
   - [ ] Test 61
   - [ ] Test 62 (1 large message)
-- Try using client_app.py and server_app.py
-- Merge both sockets
